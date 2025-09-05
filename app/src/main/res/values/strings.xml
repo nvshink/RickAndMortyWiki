@@ -1,0 +1,32 @@
+<resources>
+    <string name="app_name">RickAndMortyWiki</string>
+    <string name="icon_error_description">Error icon</string>
+    <string name="icon_description_arrow_upward">Arrow up icon</string>
+    <string name="empty_screen_title_character">Choice character for view more information.</string>
+    <string name="empty_screen_icon_description_character">Person icon</string>
+    <string name="empty_list_icon_description_characters">Empty list</string>
+    <string name="empty_list_icon_description_locations">Empty list</string>
+    <string name="empty_list_icon_description_episodes">Empty list</string>
+    <string name="empty_list_title_characters">We not found the data.</string>
+    <string name="is_local_data_title">Data from cache</string>
+    <string name="searchbar_placeholder_character">Search character…</string>
+    <string name="button_reset">Reset</string>
+    <string name="button_confirm">Confirm</string>
+    <string name="character_gender_male">Male</string>
+    <string name="character_gender_female">Female</string>
+    <string name="character_gender_genderless">Genderless</string>
+    <string name="character_gender_unknown">Unknown</string>
+    <string name="character_status_filter_title">Status</string>
+    <string name="character_status_alive">Alive</string>
+    <string name="character_status_dead">Dead</string>
+    <string name="character_status_unknown">Unknown</string>
+    <string name="character_species_filter_title">Species</string>
+    <string name="character_gender_filter_title">Gender</string>
+    <string name="character_type_filter_title">Type</string>
+    <string name="character_location_title">Location</string>
+    <string name="character_origin_title">Origin</string>
+    <string name="character_episodes_title">Episodes</string>
+    <string name="character_episodes_description_1">Participated in </string>
+    <string name="character_episodes_description_2"> episodes</string>
+
+</resources>
