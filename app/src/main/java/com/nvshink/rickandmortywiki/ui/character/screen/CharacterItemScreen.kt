@@ -2,6 +2,8 @@ package com.nvshink.rickandmortywiki.ui.character.screen
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -22,7 +24,7 @@ fun CharacterItemScreen(
     onBackPressed: () -> Unit
 ) {
     Box(modifier = modifier){
-        Column {
+        Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
             ItemScreenTopBar(
                 contentType = contentType,
                 onBackButtonClicked = onBackPressed

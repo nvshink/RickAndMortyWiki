@@ -30,8 +30,6 @@ fun CharacterItemViewScreen(
     character: CharacterModel,
     onNavigation: (Any) -> Unit
 ) {
-
-
     Column(modifier = Modifier.fillMaxSize()) {
         Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
             Card(
@@ -113,7 +111,6 @@ fun CharacterItemViewScreen(
         if(character.location.id != null){
             Card(
                 onClick = {
-                    Log.d("DATA_LOAD", "on click Character: ${character}")
                     onNavigation(LocationItemScreenRoute(character.location.id!!))
                 }
             ) {

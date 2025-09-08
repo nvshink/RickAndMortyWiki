@@ -93,7 +93,7 @@ fun RickAndMortyWikiApp(
                             .background(MaterialTheme.colorScheme.surfaceContainer),
                         characterPageListUiState = characterListUiState,
                         onCharacterListEvent = characterPageListViewModel::onEvent,
-                        characterScreenModifier = Modifier
+                        detailModifier = Modifier
                             .clip(
                                 screensShape
                             )

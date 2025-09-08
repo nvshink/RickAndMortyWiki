@@ -36,7 +36,7 @@ import com.nvshink.domain.character.model.CharacterStatus
 import com.nvshink.rickandmortywiki.R
 
 @Composable
-fun CharacterPageListCard(
+fun CharacterPageListCardContent(
     character: CharacterModel
 ) {
     val genderText: Int

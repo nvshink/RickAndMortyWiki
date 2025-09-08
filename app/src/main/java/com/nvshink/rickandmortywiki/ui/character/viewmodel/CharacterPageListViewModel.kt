@@ -62,36 +62,6 @@ open class CharacterPageListViewModel @Inject constructor(
             Resource.Loading
         )
 
-//    private val _loadedCharactersByUrls = _urls.flatMapLatest { urls ->
-//        repository.getCharactersByIds(urls.map { it.substringAfterLast('=').toInt() }).collect {
-//            _characters.update { it }
-//        }
-//    }
-//        .stateIn( TODO(Delete if it work)
-//        viewModelScope,
-//        SharingStarted.WhileSubscribed(5000),
-//        Resource.Loading
-//    )
-
-//    private val _loadedCharactersByQuery = combine(
-//        _filter,
-//        _isLoadMore,
-//        _isRefresh
-//    ) { filter, _, _ ->
-//        _isLoadMore.update { false }
-//        _isRefresh.update { false }
-//        Log.d("TEST", filter.toString())
-//        repository.getCharacters(pageInfoModel = _pageInfoModel.value, filterModel = filter).collect {
-//            _characters.update { it }
-//        }
-//    }
-//        .flatMapLatest { flow -> flow} TODO(Delete if it work)
-//        .stateIn(
-//            viewModelScope,
-//            SharingStarted.WhileSubscribed(5000),
-//            Resource.Loading
-//        )
-
     private val _uiState =
         MutableStateFlow<CharacterPageListUiState>(LoadingState())
 
@@ -101,8 +71,8 @@ open class CharacterPageListViewModel @Inject constructor(
         _sortType,
         _sortFields,
         _contentType
-    ) { uiState, loadedCharactersByQuery, sortType, sortFields, contentType ->
-        when (loadedCharactersByQuery) {
+    ) { uiState, characters, sortType, sortFields, contentType ->
+        when (characters) {
             is Resource.Loading -> {
                 _uiState.update {
                     LoadingState(
@@ -123,7 +93,7 @@ open class CharacterPageListViewModel @Inject constructor(
             }
 
             is Resource.Success -> {
-                val newCharacterList = loadedCharactersByQuery.data.second
+                val newCharacterList = characters.data.second
                 var characterList =
                     (uiState.characterList + newCharacterList).associateBy { it.id }.values.toList()
                 characterList = when (sortType) {
@@ -132,6 +102,7 @@ open class CharacterPageListViewModel @Inject constructor(
                             CharacterSortFields.NAME -> characterList.sortedBy { it.name }
                             CharacterSortFields.CREATED -> characterList.sortedBy { it.created }
                             CharacterSortFields.SPECIES -> characterList.sortedBy { it.species }
+                            CharacterSortFields.NONE -> characterList
                         }
 
                     SortTypes.DESCENDING ->
@@ -139,14 +110,15 @@ open class CharacterPageListViewModel @Inject constructor(
                             CharacterSortFields.NAME -> characterList.sortedByDescending { it.name }
                             CharacterSortFields.CREATED -> characterList.sortedByDescending { it.created }
                             CharacterSortFields.SPECIES -> characterList.sortedByDescending { it.species }
+                            CharacterSortFields.NONE -> characterList
                         }
 
                     SortTypes.NONE -> characterList
                 }
-                _pageInfoModel.update { loadedCharactersByQuery.data.first }
+                _pageInfoModel.update { characters.data.first }
                 _uiState.update {
                     SuccessState(
-                        isLocal = loadedCharactersByQuery.isLocal,
+                        isLocal = characters.isLocal,
                         characterList = characterList,
                         currentCharacter = uiState.currentCharacter,
                         filter = uiState.filter,
@@ -167,7 +139,7 @@ open class CharacterPageListViewModel @Inject constructor(
             is Resource.Error -> {
                 _uiState.update {
                     ErrorState(
-                        error = loadedCharactersByQuery.exception,
+                        error = characters.exception,
                         characterList = uiState.characterList,
                         currentCharacter = uiState.currentCharacter,
                         filter = uiState.filter,
@@ -313,28 +285,6 @@ open class CharacterPageListViewModel @Inject constructor(
                         is SuccessState -> it.copy(isSortDropDownExpanded = false)
                         is LoadingState -> it.copy(isSortDropDownExpanded = false)
                         is ErrorState -> it.copy(isSortDropDownExpanded = false)
-                        else -> it
-                    }
-                }
-            }
-
-            CharacterPageListEvent.ShowToTopButton -> {
-                _uiState.update {
-                    when (it) {
-                        is SuccessState -> it.copy(isAtTop = true)
-                        is LoadingState -> it.copy(isAtTop = true)
-                        is ErrorState -> it.copy(isAtTop = true)
-                        else -> it
-                    }
-                }
-            }
-
-            CharacterPageListEvent.HideToTopButton -> {
-                _uiState.update {
-                    when (it) {
-                        is SuccessState -> it.copy(isAtTop = false)
-                        is LoadingState -> it.copy(isAtTop = false)
-                        is ErrorState -> it.copy(isAtTop = false)
                         else -> it
                     }
                 }

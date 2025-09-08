@@ -34,7 +34,7 @@ class CharacterSmallListViewModel @Inject constructor(
 
     @OptIn(ExperimentalCoroutinesApi::class)
     private val _characters = _urls.flatMapLatest { urls ->
-        repository.getCharactersByIds(urls.map { it.substringAfterLast('=').toInt() })
+        repository.getCharactersByIds(urls.map { it.substringAfterLast('/').toInt() })
     }
         .stateIn(
             viewModelScope,
@@ -62,26 +62,9 @@ class CharacterSmallListViewModel @Inject constructor(
             }
 
             is Resource.Success -> {
-                var characterList = when (sortType) {
-                    SortTypes.ASCENDING ->
-                        when (sortFields) {
-                            CharacterSortFields.NAME -> characters.data.sortedBy { it.name }
-                            CharacterSortFields.CREATED -> characters.data.sortedBy { it.created }
-                            CharacterSortFields.SPECIES -> characters.data.sortedBy { it.species }
-                        }
-
-                    SortTypes.DESCENDING ->
-                        when (sortFields) {
-                            CharacterSortFields.NAME -> characters.data.sortedByDescending { it.name }
-                            CharacterSortFields.CREATED -> characters.data.sortedByDescending { it.created }
-                            CharacterSortFields.SPECIES -> characters.data.sortedByDescending { it.species }
-                        }
-
-                    SortTypes.NONE -> characters.data
-                }
                 _uiState.update {
                     SuccessState(
-                        characterList = characterList,
+                        characterList = characters.data,
                         sortType = sortType,
                         sortFields = sortFields,
                     )

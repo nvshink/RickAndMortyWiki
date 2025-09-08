@@ -14,8 +14,6 @@ sealed interface CharacterPageListEvent {
     data object HideSortDropDown: CharacterPageListEvent
     data object ShowFilterDialog: CharacterPageListEvent
     data object HideFilterDialog: CharacterPageListEvent
-    data object ShowToTopButton: CharacterPageListEvent
-    data object HideToTopButton: CharacterPageListEvent
     data object ClearFilterSelection: CharacterPageListEvent
     data class SetFilter(val filter: CharacterFilterModel): CharacterPageListEvent
     data class SetUiStateFilter(val filter: CharacterFilterModel): CharacterPageListEvent

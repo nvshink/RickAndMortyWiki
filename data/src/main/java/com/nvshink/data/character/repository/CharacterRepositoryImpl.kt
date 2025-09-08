@@ -70,7 +70,6 @@ class CharacterRepositoryImpl @Inject constructor(
                     }
                 )
             }
-            Log.d("DATA_LOAD", "Character point 1: ${response}")
 
             //Separate info and result
             val responseInfo = response.info
@@ -80,15 +79,10 @@ class CharacterRepositoryImpl @Inject constructor(
                 next = responseInfo.next,
                 prev = responseInfo.prev
             )
-            Log.d("DATA_LOAD", "Character point 2: ${CharacterMapper.responseToEntity(responseResult[0])}")
-            Log.d("DATA_LOAD", "Character point 2.1: ${responseResult.size}")
 
             //White result in local DB
             responseResult.forEach {
-                Log.d("DATA_LOAD", "Character point 3.1: ${it}")
-                Log.d("DATA_LOAD", "Character point 3: ${CharacterMapper.responseToEntity(it).id}")
                 dao.upsertCharacter(CharacterMapper.responseToEntity(it))
-                Log.d("DATA_LOAD", "Character point 4: ${CharacterMapper.responseToEntity(it).id}")
             }
 
             // Return characters
@@ -104,7 +98,7 @@ class CharacterRepositoryImpl @Inject constructor(
                 )
             )
         } catch (e: Exception) {
-            Log.d("DATA_LOAD", "Character error: ${e.message}")
+            Log.d("DATA_LOAD", "Characters error: ${e.message}")
             //Try load from cache
             try {
                 dao.getCharacters(
@@ -129,7 +123,7 @@ class CharacterRepositoryImpl @Inject constructor(
                     )
                 }
             } catch (dbException: Throwable) {
-                Log.d("DATA_LOAD", "Character db error: ${dbException.message}")
+                Log.d("DATA_LOAD", "Characters db error: ${dbException.message}")
                 emit(Resource.Error(dbException, Pair(first = null, second = emptyList())))
             }
         }
@@ -170,6 +164,7 @@ class CharacterRepositoryImpl @Inject constructor(
                         )
                     )
                 } catch (dbException: Throwable) {
+                    Log.d("DATA_LOAD", "Characters by ids db error: ${dbException.message}")
                     emit(Resource.Error(dbException, emptyList()))
                 }
             }
@@ -179,7 +174,6 @@ class CharacterRepositoryImpl @Inject constructor(
         emit(Resource.Loading)
         try {
             val response = service.getGetCharacterById(id)
-            Log.d("DATA_LOAD", "Charcter response: ${response}")
             dao.upsertCharacter(CharacterMapper.responseToEntity(response))
             emit(
                 Resource.Success(
@@ -187,7 +181,7 @@ class CharacterRepositoryImpl @Inject constructor(
                 )
             )
         } catch (e: Exception) {
-            Log.d("DATA_LOAD", e.message ?: "")
+            Log.d("DATA_LOAD", "Character by id error: ${e.message}")
             try {
                 dao.getCharactersById(id).collect { cachedEntity ->
                     emit(
@@ -200,6 +194,7 @@ class CharacterRepositoryImpl @Inject constructor(
                 }
 
             } catch (dbException: Throwable) {
+                Log.d("DATA_LOAD", "Characters by id db error: ${dbException.message}")
                 emit(Resource.Error(dbException, null))
             }
         }
