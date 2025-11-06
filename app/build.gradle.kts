@@ -50,12 +50,12 @@ dependencies {
     implementation(libs.androidx.ui)
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
-    implementation(libs.androidx.material3)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
-    implementation(libs.androidx.material3.windowsizeclass)
     implementation(libs.androidx.navigation.compose)
-    implementation(libs.androidx.material.icons.extended)
+    implementation(libs.androidx.material3)
+    implementation(libs.androidx.material3.windowsizeclass)
     implementation(libs.androidx.material3.adaptive.navigation.suite)
+    implementation(libs.androidx.material.icons.extended)
     implementation(libs.androidx.adaptive.navigation)
 
     //Json
@@ -69,6 +69,7 @@ dependencies {
     // Hilt
     implementation(libs.hilt.android)
     implementation(libs.androidx.hilt.navigation.compose)
+    implementation(libs.androidx.animation.core)
     ksp(libs.hilt.compiler)
 
     testImplementation(libs.junit)

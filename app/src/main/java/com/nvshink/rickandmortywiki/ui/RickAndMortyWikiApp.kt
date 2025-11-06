@@ -24,9 +24,9 @@ import com.nvshink.rickandmortywiki.ui.character.screen.CharacterScreen
 import com.nvshink.rickandmortywiki.ui.character.viewmodel.CharacterPageListViewModel
 import com.nvshink.rickandmortywiki.ui.episode.screen.EpisodeScreen
 import com.nvshink.rickandmortywiki.ui.episode.viewmodel.EpisodeViewModel
-import com.nvshink.rickandmortywiki.ui.generic.components.navigation.NavigationBarLayout
-import com.nvshink.rickandmortywiki.ui.generic.components.navigation.NavigationRailLayout
-import com.nvshink.rickandmortywiki.ui.generic.components.navigation.PermanentNavigationDrawerLayout
+import com.nvshink.rickandmortywiki.ui.generic.components.navigation.layouts.NavigationBarLayout
+import com.nvshink.rickandmortywiki.ui.generic.components.navigation.layouts.NavigationRailLayout
+import com.nvshink.rickandmortywiki.ui.generic.components.navigation.layouts.PermanentNavigationDrawerLayout
 import com.nvshink.rickandmortywiki.ui.location.screen.LocationScreen
 import com.nvshink.rickandmortywiki.ui.location.viewmodel.LocationPageListViewModel
 import com.nvshink.rickandmortywiki.ui.utils.CharactersScreenRoute

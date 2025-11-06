@@ -1,52 +1,44 @@
-package com.nvshink.rickandmortywiki.ui.generic.components.navigation
+package com.nvshink.rickandmortywiki.ui.generic.components.navigation.layouts
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
+import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.NavigationRail
-import androidx.compose.material3.NavigationRailItem
-import androidx.compose.material3.NavigationRailItemColors
+import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationBarItemColors
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.dp
 import androidx.navigation.NavDestination
 import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavDestination.Companion.hierarchy
 import com.nvshink.rickandmortywiki.ui.utils.Destinations
 
 @Composable
-fun NavigationRailLayout(
+fun NavigationBarLayout(
     modifier: Modifier,
     currentDestination: NavDestination?,
     onMenuItemSelected: (Any) -> Unit,
     content: @Composable (innerPadding: PaddingValues) -> Unit
 ) {
     val topLevelRoutes = Destinations.getTopLevelRoutes()
-    Scaffold { innerPadding ->
-        Row(modifier = modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.primaryContainer)) {
-            NavigationRail(
-                modifier = Modifier.width(80.dp),
-                containerColor = MaterialTheme.colorScheme.primaryContainer) {
+    Scaffold(
+        modifier = modifier,
+        bottomBar = {
+            BottomAppBar(containerColor = MaterialTheme.colorScheme.primaryContainer) {
                 topLevelRoutes.forEach { item ->
-                    NavigationRailItem(
-                        modifier = Modifier.padding(horizontal = 12.dp),
+                    NavigationBarItem(
                         label = {
-                            Text(text = item.name, textAlign = TextAlign.Center)
+                            Text(text = item.name)
                         },
                         icon = {
-                            Icon(imageVector = item.icon, contentDescription = item.name)
+                            Icon(
+                                imageVector = item.icon,
+                                contentDescription = item.name
+                            )
                         },
-                        colors = NavigationRailItemColors(
+                        colors = NavigationBarItemColors(
                             selectedIconColor = MaterialTheme.colorScheme.onSecondary,
                             selectedTextColor = MaterialTheme.colorScheme.onPrimaryContainer,
                             selectedIndicatorColor = MaterialTheme.colorScheme.secondary,
@@ -63,8 +55,8 @@ fun NavigationRailLayout(
                     )
                 }
             }
-            content(innerPadding)
         }
+    ) { innerPadding ->
+        content(innerPadding)
     }
 }
-

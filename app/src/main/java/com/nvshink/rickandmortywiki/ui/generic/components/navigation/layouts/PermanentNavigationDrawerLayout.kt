@@ -1,4 +1,4 @@
-package com.nvshink.rickandmortywiki.ui.generic.components.navigation
+package com.nvshink.rickandmortywiki.ui.generic.components.navigation.layouts
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.PaddingValues

@@ -30,6 +30,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRestorer
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.nvshink.domain.character.utils.CharacterSortFields
@@ -44,110 +46,74 @@ fun CharacterPageListTopBar(
     uiState: CharacterPageListUiState,
     onEvent: (CharacterPageListEvent) -> Unit
 ) {
-        Column(
-            verticalArrangement = Arrangement.spacedBy(10.dp)
+    Column(
+        verticalArrangement = Arrangement.spacedBy(10.dp)
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(15.dp)
         ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(15.dp)
-            ) {
-                SearchBar(
-                    modifier = Modifier.weight(1f),
-                    inputField = {
-                        SearchBarDefaults.InputField(
-                            query = uiState.searchBarText,
-                            onQueryChange = {
-                                onEvent(
-                                    CharacterPageListEvent.SetSearchBarText(text = it)
-                                )
-                            },
-                            onSearch = {
-                                onEvent(
-                                    CharacterPageListEvent.SetFilter(
-                                        filter = uiState.filter.copy(
-                                            name = it
-                                        )
+            SearchBar(
+                modifier = Modifier.weight(1f),
+                inputField = {
+                    SearchBarDefaults.InputField(
+                        query = uiState.searchBarText,
+                        onQueryChange = {
+                            onEvent(
+                                CharacterPageListEvent.SetSearchBarText(text = it)
+                            )
+                            onEvent(
+                                CharacterPageListEvent.SetFilter(
+                                    filter = uiState.filter.copy(
+                                        name = it
                                     )
                                 )
-                            },
-                            expanded = false,
-                            onExpandedChange = {},
-                            placeholder = { Text(stringResource(R.string.searchbar_placeholder_character)) })
-                    },
-                    expanded = false,
-                    onExpandedChange = {},
-                    windowInsets = WindowInsets(0, 0, 0, 0),
-                ) { }
-                Button(
-                    onClick = { onEvent(CharacterPageListEvent.ShowFilterDialog) },
-                    modifier = Modifier.size(48.dp),
-                    contentPadding = PaddingValues(0.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.FilterList,
-                        contentDescription = null
-                    )
-                }
-            }
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.End
-            ) {
-                Button(
-                    onClick = {
-                        onEvent(
-                            CharacterPageListEvent.SetSortType(
-                                sortType = when (uiState.sortType) {
-                                    SortTypes.ASCENDING -> SortTypes.DESCENDING
-                                    SortTypes.DESCENDING -> SortTypes.ASCENDING
-                                    else -> SortTypes.ASCENDING
-                                }
                             )
-                        )
-                    },
-                ) {
-                    Row {
-                        Icon(
-                            imageVector = when (uiState.sortType) {
-                                SortTypes.ASCENDING -> Icons.Default.KeyboardDoubleArrowUp
-                                SortTypes.DESCENDING -> Icons.Default.KeyboardDoubleArrowDown
-                                SortTypes.NONE -> Icons.Default.QuestionMark
-                            },
-                            contentDescription = null
-                        )
-                    }
-                }
-                Spacer(Modifier.size(10.dp))
-                SingleChoiceSegmentedButtonRow {
-                    CharacterSortFields.entries.forEachIndexed { index, it ->
-                        SegmentedButton(selected = uiState.sortFields == it, onClick = {
-                                onEvent(
-                                    CharacterPageListEvent.SetSortFields(it)
+                        },
+                        onSearch = {
+                            onEvent(
+                                CharacterPageListEvent.SetFilter(
+                                    filter = uiState.filter.copy(
+                                        name = it
+                                    )
                                 )
-                            }, shape = SegmentedButtonDefaults.itemShape(
-                                index = index,
-                                count = CharacterSortFields.entries.size
-                            )) { Text(it.name, style = MaterialTheme.typography.bodySmall) }
-                    }
-                }
-            }
-            if (uiState is CharacterPageListUiState.SuccessState && uiState.isLocal) {
-                Box(
-                    modifier = Modifier.fillMaxWidth(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = stringResource(R.string.is_local_data_title),
-                        modifier = Modifier
-                            .clip(
-                                MaterialTheme.shapes.extraLarge
                             )
-                            .background(MaterialTheme.colorScheme.secondaryContainer)
-                            .padding(5.dp)
-                        ,
-                        style = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSecondaryContainer)
-                    )
-                }
+                        },
+                        expanded = false,
+                        onExpandedChange = {},
+                        placeholder = { Text(stringResource(R.string.searchbar_placeholder_character)) })
+                },
+                expanded = false,
+                onExpandedChange = {},
+                windowInsets = WindowInsets(0, 0, 0, 0),
+            ) { }
+            Button(
+                onClick = { onEvent(CharacterPageListEvent.ShowFilterDialog) },
+                modifier = Modifier.size(48.dp),
+                contentPadding = PaddingValues(0.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.FilterList,
+                    contentDescription = null
+                )
+            }
+        }
+        if (uiState is CharacterPageListUiState.SuccessState && uiState.isLocal) {
+            Box(
+                modifier = Modifier.fillMaxWidth(),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = stringResource(R.string.is_local_data_title),
+                    modifier = Modifier
+                        .clip(
+                            MaterialTheme.shapes.extraLarge
+                        )
+                        .background(MaterialTheme.colorScheme.secondaryContainer)
+                        .padding(5.dp),
+                    style = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSecondaryContainer)
+                )
             }
         }
     }
+}

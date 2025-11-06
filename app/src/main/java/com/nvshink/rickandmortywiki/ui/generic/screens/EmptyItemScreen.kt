@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -15,8 +16,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.takeOrElse
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.nvshink.rickandmortywiki.R
 
 @Composable
 fun EmptyItemScreen(
@@ -26,7 +29,8 @@ fun EmptyItemScreen(
     colors: EmptyItemScreenColors = EmptyItemScreenColors(
         iconTintColor = MaterialTheme.colorScheme.outline,
         textColor = MaterialTheme.colorScheme.outline
-    )
+    ),
+    onRefresh: (() -> Unit)? = null
 ) {
     Column(
         modifier = Modifier.fillMaxSize(),
@@ -51,6 +55,11 @@ fun EmptyItemScreen(
                     .width(300.dp)
                     .padding(top = 20.dp)
             )
+        }
+        if (onRefresh != null) {
+            Button(onClick = onRefresh) {
+                Text(text = stringResource(R.string.button_refresh))
+            }
         }
     }
 }

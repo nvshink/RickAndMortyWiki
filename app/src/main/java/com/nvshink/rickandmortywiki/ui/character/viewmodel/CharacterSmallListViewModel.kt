@@ -27,8 +27,6 @@ import javax.inject.Inject
 class CharacterSmallListViewModel @Inject constructor(
     private val repository: CharacterRepository
 ) : ViewModel() {
-    private val _sortType = MutableStateFlow(SortTypes.ASCENDING)
-    private val _sortFields = MutableStateFlow(CharacterSortFields.NAME)
     private val _urls = MutableStateFlow<List<String>>(emptyList())
 
 
@@ -48,25 +46,18 @@ class CharacterSmallListViewModel @Inject constructor(
     val uiState = combine(
         _uiState,
         _characters,
-        _sortType,
-        _sortFields,
-    ) { uiState, characters, sortType, sortFields ->
+    ) { uiState, characters ->
         when (characters) {
             is Resource.Loading -> {
                 _uiState.update {
-                    LoadingState(
-                        sortType = sortType,
-                        sortFields = sortFields
-                    )
+                    LoadingState()
                 }
             }
 
             is Resource.Success -> {
                 _uiState.update {
                     SuccessState(
-                        characterList = characters.data,
-                        sortType = sortType,
-                        sortFields = sortFields,
+                        characterList = characters.data
                     )
                 }
             }
@@ -74,9 +65,7 @@ class CharacterSmallListViewModel @Inject constructor(
             is Resource.Error -> {
                 _uiState.update {
                     ErrorState(
-                        error = characters.exception,
-                        sortType = sortType,
-                        sortFields = sortFields,
+                        error = characters.exception
                     )
                 }
             }
@@ -90,10 +79,6 @@ class CharacterSmallListViewModel @Inject constructor(
 
     fun onEvent(event: CharacterSmallListEvent) {
         when (event) {
-            is CharacterSmallListEvent.SetSortFields -> _sortFields.update { event.sortFields }
-
-            is CharacterSmallListEvent.SetSortType -> _sortType.update { event.sortType }
-
             is CharacterSmallListEvent.SetUrls -> _urls.update { event.urls }
         }
     }

@@ -12,14 +12,10 @@ interface CharacterPageListUiState {
     val filter: CharacterFilterModel
     val isShowingList: Boolean
     val isShowingFilter: Boolean
-    val isSortDropDownExpanded: Boolean
     val isAtTop: Boolean
     val isRefreshing: Boolean
     val searchBarText: String
     val searchBarFiltersText: String
-
-    val sortType: SortTypes
-    val sortFields: CharacterSortFields
     val contentType: ContentType
 
     data class LoadingState(
@@ -34,13 +30,10 @@ interface CharacterPageListUiState {
         ),
         override val isShowingList: Boolean = true,
         override val isShowingFilter: Boolean = false,
-        override val isSortDropDownExpanded: Boolean = false,
         override val isAtTop: Boolean = true,
         override val isRefreshing: Boolean = false,
         override val searchBarText: String = "",
         override val searchBarFiltersText: String = "",
-        override val sortType: SortTypes = SortTypes.ASCENDING,
-        override val sortFields: CharacterSortFields = CharacterSortFields.NAME,
         override val contentType: ContentType = ContentType.LIST_ONLY
     ) : CharacterPageListUiState
 
@@ -57,13 +50,10 @@ interface CharacterPageListUiState {
         ),
         override val isShowingList: Boolean = true,
         override val isShowingFilter: Boolean = false,
-        override val isSortDropDownExpanded: Boolean = false,
         override val isAtTop: Boolean = true,
         override val isRefreshing: Boolean = false,
         override val searchBarText: String = "",
         override val searchBarFiltersText: String = "",
-        override val sortType: SortTypes = SortTypes.ASCENDING,
-        override val sortFields: CharacterSortFields = CharacterSortFields.NAME,
         override val contentType: ContentType = ContentType.LIST_ONLY
     ) : CharacterPageListUiState
 
@@ -80,13 +70,10 @@ interface CharacterPageListUiState {
         ),
         override val isShowingList: Boolean = true,
         override val isShowingFilter: Boolean = false,
-        override val isSortDropDownExpanded: Boolean = false,
         override val isAtTop: Boolean = true,
         override val isRefreshing: Boolean = false,
         override val searchBarText: String = "",
         override val searchBarFiltersText: String = "",
-        override val sortType: SortTypes = SortTypes.ASCENDING,
-        override val sortFields: CharacterSortFields = CharacterSortFields.NAME,
         override val contentType: ContentType = ContentType.LIST_ONLY
     ) : CharacterPageListUiState
 }

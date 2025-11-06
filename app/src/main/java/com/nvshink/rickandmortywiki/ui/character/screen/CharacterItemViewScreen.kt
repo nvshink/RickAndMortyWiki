@@ -130,19 +130,27 @@ fun CharacterItemViewScreen(
                 }
             }
         }
-        Column {
-            Text(
-                stringResource(R.string.character_origin_title),
-                style = MaterialTheme.typography.titleMedium,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.fillMaxWidth()
-            )
-            Text(
-                character.origin.name,
-                style = MaterialTheme.typography.bodyMedium,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.fillMaxWidth()
-            )
+        if(character.origin.id != null){
+            Card(
+                onClick = {
+                    onNavigation(LocationItemScreenRoute(character.origin.id!!))
+                }
+            ) {
+                Column {
+                    Text(
+                        stringResource(R.string.character_origin_title),
+                        style = MaterialTheme.typography.titleMedium,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    Text(
+                        text = character.location.name,
+                        style = MaterialTheme.typography.bodyMedium,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+            }
         }
         Column {
             Text(
@@ -158,6 +166,5 @@ fun CharacterItemViewScreen(
                 modifier = Modifier.fillMaxWidth()
             )
         }
-
     }
 }

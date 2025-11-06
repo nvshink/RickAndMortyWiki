@@ -2,6 +2,8 @@ package com.nvshink.data.generic.local.di
 
 import android.content.Context
 import androidx.room.Room
+import androidx.room.TypeConverters
+import com.nvshink.data.character.local.converter.CharacterTypeConverter
 import com.nvshink.data.character.local.dao.CharacterDao
 import com.nvshink.data.episode.local.dao.EpisodeDao
 import com.nvshink.data.generic.local.room.RickAndMortyWikiDB
@@ -15,6 +17,7 @@ import javax.inject.Singleton
 
 @Module
 @InstallIn(SingletonComponent::class)
+@TypeConverters(CharacterTypeConverter::class)
 object RoomModule {
     @Provides
     @Singleton

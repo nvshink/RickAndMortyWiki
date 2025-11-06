@@ -5,8 +5,6 @@ import com.nvshink.domain.character.utils.CharacterSortFields
 import com.nvshink.domain.resource.SortTypes
 
 sealed interface CharacterSmallListEvent {
-    data class SetSortType(val sortType: SortTypes) : CharacterSmallListEvent
-    data class SetSortFields(val sortFields: CharacterSortFields) : CharacterSmallListEvent
     data class SetUrls (val urls: List<String>): CharacterSmallListEvent
 
 }

@@ -28,7 +28,6 @@ fun LocationItemScreen(
     navController: NavHostController,
     onBackPressed: () -> Unit
 ) {
-
     Box(modifier = modifier){
         Column {
             ItemScreenTopBar(

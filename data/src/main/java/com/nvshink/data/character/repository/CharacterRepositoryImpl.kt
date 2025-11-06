@@ -40,6 +40,7 @@ class CharacterRepositoryImpl @Inject constructor(
                 if (pageInfoModel.next != null) {
                     response = service.getGetListOfCharactersByUrl(pageInfoModel.next!!)
                 } else {
+                    Log.d("TEST", "Res")
                     emit(
                         Resource.Success(
                             Pair(
@@ -112,6 +113,7 @@ class CharacterRepositoryImpl @Inject constructor(
                         CharacterMapper.entityToModel(characterEntity)
                     }
                 }.collect { characters ->
+
                     emit(
                         Resource.Success(
                             data = Pair(

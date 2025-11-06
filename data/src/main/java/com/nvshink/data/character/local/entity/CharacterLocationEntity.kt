@@ -6,7 +6,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class CharacterLocationEntity (
     @SerialName("location_id")
-    val locationId: Int?,
+    val locationId: Int? = null,
     val name: String,
     val url: String
 )
