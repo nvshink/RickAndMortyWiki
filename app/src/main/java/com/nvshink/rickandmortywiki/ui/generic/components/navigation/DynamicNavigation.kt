@@ -1,5 +1,6 @@
 package com.nvshink.rickandmortywiki.ui.generic.components.navigation
 
+import android.util.Log
 import androidx.compose.animation.AnimatedContentTransitionScope
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
@@ -46,6 +47,7 @@ import com.nvshink.rickandmortywiki.ui.utils.LocationItemScreenRoute
 @Composable
 fun DynamicNavigation(
     modifier: Modifier = Modifier,
+    onBack: () -> Unit,
     itemModifier: Modifier = Modifier,
     startDestination: Any
 ) {
@@ -78,7 +80,9 @@ fun DynamicNavigation(
                 modifier = itemModifier,
                 detailUiState = characterDetailUiState,
                 onBackPressed = {
-                    navController.navigateUp()
+                    if (!navController.navigateUp()) {
+                        onBack()
+                    }
                 },
                 navController = navController,
                 contentType = ContentType.LIST_ONLY

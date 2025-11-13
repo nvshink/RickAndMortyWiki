@@ -43,6 +43,7 @@ fun <T> InfinityLazyGrid(
     items: List<T>,
     cellsArrangement: Dp,
     listItem: @Composable (T) -> Unit,
+    listTopContent: (@Composable () -> Unit)? = null,
     isLoading: Boolean,
     errorMessage: String?,
     onLoadMore: () -> Unit
@@ -63,6 +64,11 @@ fun <T> InfinityLazyGrid(
             horizontalArrangement = Arrangement.spacedBy(cellsArrangement),
             verticalArrangement = Arrangement.spacedBy(cellsArrangement)
         ) {
+            if (listTopContent != null) {
+                item(span = { GridItemSpan(maxLineSpan) }) {
+                    listTopContent()
+                }
+            }
             itemsIndexed(items) { index, item ->
                 listItem(item)
             }

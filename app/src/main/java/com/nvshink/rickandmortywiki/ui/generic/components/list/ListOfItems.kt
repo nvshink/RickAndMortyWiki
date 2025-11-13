@@ -1,5 +1,6 @@
 package com.nvshink.rickandmortywiki.ui.generic.components.list
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -53,17 +54,18 @@ fun <T> ListOfItems(
 ) {
     val coroutineScope = rememberCoroutineScope()
     val scaffoldNavigator = rememberListDetailPaneScaffoldNavigator<Int>()
+
     NavigableListDetailPaneScaffold(
         modifier = modifier,
         navigator = scaffoldNavigator,
         listPane = {
+            //TODO: the text field is auto focused when it is in AnimatedPane. It's problem
             AnimatedPane {
                 Box {
                     Column(
                         modifier = Modifier.fillMaxSize(),
                         verticalArrangement = Arrangement.spacedBy(20.dp)
                     ) {
-                        listTopContent()
                         PullToRefreshBox(
                             isRefreshing = isRefreshing,
                             onRefresh = onRefresh
@@ -95,6 +97,7 @@ fun <T> ListOfItems(
                                                 listItem(item)
                                             }
                                         },
+                                        listTopContent = listTopContent,
                                         isLoading = isLoading,
                                         errorMessage = errorMessage,
                                         onLoadMore = onLoadMore
@@ -116,16 +119,26 @@ fun <T> ListOfItems(
                     }
 
                 }
+
             }
+
+
         },
         detailPane = {
             val id = scaffoldNavigator.currentDestination?.contentKey
             AnimatedPane {
-                if(id != null) {
+                if (id != null) {
                     key(id) {
                         DynamicNavigation(
                             itemModifier = detailModifier,
-                            startDestination = listItemRoute(id)
+                            startDestination = listItemRoute(id),
+                            onBack = {
+                                coroutineScope.launch {
+                                    scaffoldNavigator.navigateTo(
+                                        pane = ListDetailPaneScaffoldRole.List,
+                                    )
+                                }
+                            }
                         )
                     }
                 } else EmptyItemScreen(
@@ -136,4 +149,5 @@ fun <T> ListOfItems(
             }
         }
     )
+
 }
