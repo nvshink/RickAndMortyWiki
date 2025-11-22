@@ -27,13 +27,17 @@ fun CharacterFilterDialog(
 ) {
     FilterDialog(
         onDismissRequest = { onCharacterListEvent(CharacterPageListEvent.HideFilterDialog) },
-        onReset = { onCharacterListEvent(CharacterPageListEvent.ClearFilterSelection) },
+        onReset = { onCharacterListEvent(CharacterPageListEvent.ClearFilterUi) },
         onConfirm = {
             onCharacterListEvent(
                 CharacterPageListEvent.SetFilter(
                     characterPageListUiState.filter
                 )
             )
+            onCharacterListEvent(
+                CharacterPageListEvent.RefreshList
+            )
+            onCharacterListEvent(CharacterPageListEvent.HideFilterDialog)
         },
         contentType = contentType,
     ) {

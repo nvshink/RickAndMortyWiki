@@ -24,7 +24,7 @@ import androidx.compose.ui.unit.dp
 fun ListItem(
     modifier: Modifier = Modifier,
     onCardClick: (() -> Unit)?,
-    content: @Composable (() -> Unit)?
+    content: @Composable (() -> Unit)
 ) {
     if (onCardClick != null) {
         Card(
@@ -34,7 +34,8 @@ fun ListItem(
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
             onClick = onCardClick
         ) {
-            content?.invoke()
+
+            content()
         }
     }
 }

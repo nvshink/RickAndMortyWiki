@@ -1,13 +1,11 @@
 package com.nvshink.rickandmortywiki.ui.generic.components.list
 
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Text
 import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
 import androidx.compose.material3.adaptive.layout.AnimatedPane
 import androidx.compose.material3.adaptive.layout.ListDetailPaneScaffoldRole
@@ -24,7 +22,6 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.nvshink.rickandmortywiki.ui.generic.components.navigation.DynamicNavigation
 import com.nvshink.rickandmortywiki.ui.generic.screens.EmptyItemScreen
-import com.nvshink.rickandmortywiki.ui.generic.screens.EmptyItemScreenColors
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3AdaptiveApi::class)
@@ -37,6 +34,7 @@ fun <T> ListOfItems(
     isRefreshing: Boolean,
     onRefresh: () -> Unit,
     onLoadMore: () -> Unit,
+    onOffline: (Boolean) -> Unit,
     errorMessage: String?,
     emptyListIcon: ImageVector? = null,
     emptyListIconDescription: String = "",
@@ -45,7 +43,6 @@ fun <T> ListOfItems(
     emptyDetailIconDescription: String = "",
     emptyDetailTitle: String? = "",
     listArrangement: Dp = 0.dp,
-    colors: EmptyItemScreenColors,
     fab: (@Composable (Modifier) -> Unit)?,
     listItem: @Composable (T) -> Unit,
     listItemRoute: (Int) -> Any,
@@ -59,7 +56,7 @@ fun <T> ListOfItems(
         modifier = modifier,
         navigator = scaffoldNavigator,
         listPane = {
-            //TODO: the text field is auto focused when it is in AnimatedPane. It's problem
+            //TODO: the text field is auto focused when it is in AnimatedPane. It's a problem
             AnimatedPane {
                 Box {
                     Column(
@@ -71,45 +68,37 @@ fun <T> ListOfItems(
                             onRefresh = onRefresh
                         ) {
                             Column {
-                                if (!isLoading && listOfItems.isEmpty()) {
-                                    EmptyItemScreen(
-                                        title = emptyListTitle,
-                                        icon = emptyListIcon,
-                                        iconDescription = emptyListIconDescription,
-                                        colors = colors,
-                                        onRefresh = onRefresh
-                                    )
-                                } else {
-                                    InfinityLazyGrid(
-                                        items = listOfItems,
-                                        cellsArrangement = listArrangement,
-                                        listItem = { item ->
-                                            ListItem(
-                                                onCardClick = {
-                                                    coroutineScope.launch {
-                                                        scaffoldNavigator.navigateTo(
-                                                            pane = ListDetailPaneScaffoldRole.Detail,
-                                                            contentKey = listId(item)
-                                                        )
-                                                    }
+                                InfinityLazyGrid(
+                                    items = listOfItems,
+                                    cellsArrangement = listArrangement,
+                                    listItem = { item ->
+                                        ListItem(
+                                            onCardClick = {
+                                                coroutineScope.launch {
+                                                    scaffoldNavigator.navigateTo(
+                                                        pane = ListDetailPaneScaffoldRole.Detail,
+                                                        contentKey = listId(item)
+                                                    )
                                                 }
-                                            ) {
-                                                listItem(item)
                                             }
-                                        },
-                                        listTopContent = listTopContent,
-                                        isLoading = isLoading,
-                                        errorMessage = errorMessage,
-                                        onLoadMore = onLoadMore
-                                    )
-                                }
+                                        ) {
+                                            listItem(item)
+                                        }
+                                    },
+                                    listTopContent = listTopContent,
+                                    isLoading = isLoading,
+                                    emptyListIcon = emptyListIcon,
+                                    emptyListIconDescription = emptyListIconDescription,
+                                    emptyListTitle = emptyListTitle,
+                                    errorMessage = errorMessage,
+                                    onLoadMore = onLoadMore,
+                                    onRefresh = onRefresh,
+                                    onOffline = onOffline
+                                )
                             }
                         }
 
                     }
-                    if (errorMessage != null) Text(
-                        errorMessage
-                    )
                     if (fab != null) {
                         fab(
                             Modifier
@@ -130,6 +119,7 @@ fun <T> ListOfItems(
                 if (id != null) {
                     key(id) {
                         DynamicNavigation(
+                            modifier = Modifier.fillMaxSize(),
                             itemModifier = detailModifier,
                             startDestination = listItemRoute(id),
                             onBack = {

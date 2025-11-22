@@ -1,6 +1,8 @@
 package com.nvshink.rickandmortywiki.ui.generic.components.navigation.layouts
 
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -17,16 +19,16 @@ import com.nvshink.rickandmortywiki.ui.utils.Destinations
 
 @Composable
 fun NavigationBarLayout(
-    modifier: Modifier,
+    modifier: Modifier = Modifier,
     currentDestination: NavDestination?,
     onMenuItemSelected: (Any) -> Unit,
-    content: @Composable (innerPadding: PaddingValues) -> Unit
+    content: @Composable () -> Unit
 ) {
     val topLevelRoutes = Destinations.getTopLevelRoutes()
     Scaffold(
         modifier = modifier,
         bottomBar = {
-            BottomAppBar(containerColor = MaterialTheme.colorScheme.primaryContainer) {
+            BottomAppBar {
                 topLevelRoutes.forEach { item ->
                     NavigationBarItem(
                         label = {
@@ -38,15 +40,6 @@ fun NavigationBarLayout(
                                 contentDescription = item.name
                             )
                         },
-                        colors = NavigationBarItemColors(
-                            selectedIconColor = MaterialTheme.colorScheme.onSecondary,
-                            selectedTextColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                            selectedIndicatorColor = MaterialTheme.colorScheme.secondary,
-                            unselectedTextColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                            unselectedIconColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                            disabledIconColor = MaterialTheme.colorScheme.outlineVariant,
-                            disabledTextColor = MaterialTheme.colorScheme.outlineVariant
-                        ),
                         selected = currentDestination?.hierarchy?.any { it.hasRoute(item.route::class) } == true,
                         onClick = {
                             onMenuItemSelected(item.route)
@@ -57,6 +50,6 @@ fun NavigationBarLayout(
             }
         }
     ) { innerPadding ->
-        content(innerPadding)
+        Box(modifier = Modifier.padding(innerPadding)) { content() }
     }
 }

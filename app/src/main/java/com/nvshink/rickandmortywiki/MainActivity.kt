@@ -27,16 +27,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             RickAndMortyWikiTheme {
-                val layoutDirection = LocalLayoutDirection.current
-                Surface(
-                    modifier = Modifier
-                        .padding(
-                            start = WindowInsets.safeDrawing.asPaddingValues()
-                                .calculateStartPadding(layoutDirection),
-                            end = WindowInsets.safeDrawing.asPaddingValues()
-                                .calculateEndPadding(layoutDirection)
-                        )
-                ) {
+                Surface {
                     val windowSize = calculateWindowSizeClass(this)
                     RickAndMortyWikiApp(windowSize = windowSize.widthSizeClass)
                 }

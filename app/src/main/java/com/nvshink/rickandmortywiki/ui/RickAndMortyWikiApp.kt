@@ -1,7 +1,7 @@
 package com.nvshink.rickandmortywiki.ui
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
@@ -20,10 +20,10 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import com.nvshink.rickandmortywiki.ui.character.screen.CharacterScreen
+import com.nvshink.rickandmortywiki.ui.character.screen.CharactersScreen
 import com.nvshink.rickandmortywiki.ui.character.viewmodel.CharacterPageListViewModel
 import com.nvshink.rickandmortywiki.ui.episode.screen.EpisodeScreen
-import com.nvshink.rickandmortywiki.ui.episode.viewmodel.EpisodeViewModel
+import com.nvshink.rickandmortywiki.ui.episode.viewmodel.EpisodeSmallListViewModel
 import com.nvshink.rickandmortywiki.ui.generic.components.navigation.layouts.NavigationBarLayout
 import com.nvshink.rickandmortywiki.ui.generic.components.navigation.layouts.NavigationRailLayout
 import com.nvshink.rickandmortywiki.ui.generic.components.navigation.layouts.PermanentNavigationDrawerLayout
@@ -77,7 +77,7 @@ fun RickAndMortyWikiApp(
 
     val navController = rememberNavController()
     val navHost = remember {
-        movableContentOf<PaddingValues> { innerPadding ->
+        movableContentOf {
             NavHost(
                 navController = navController,
                 startDestination = Destinations.getDefaultTopLevelRoute().route
@@ -85,15 +85,37 @@ fun RickAndMortyWikiApp(
                 composable<CharactersScreenRoute> {
                     val characterPageListViewModel: CharacterPageListViewModel = hiltViewModel()
                     val characterListUiState = characterPageListViewModel.uiState.collectAsState().value
-                    CharacterScreen(
+                    CharactersScreen(
                         modifier = Modifier
                             .clip(
                                 screensShape
                             )
                             .background(MaterialTheme.colorScheme.surfaceContainer),
-                        characterPageListUiState = characterListUiState,
-                        onCharacterListEvent = characterPageListViewModel::onEvent,
+                        pageListUiState = characterListUiState,
+                        onPageListEvent = characterPageListViewModel::onEvent,
                         detailModifier = Modifier
+                            .clip(
+                                screensShape
+                            )
+                            .background(MaterialTheme.colorScheme.surface)
+                            .fillMaxSize(),
+                        contentType = contentType
+                    )
+                }
+                composable<LocationsScreenRoute> {
+                    val locationPageListViewModel: LocationPageListViewModel = hiltViewModel()
+                    val locationListUiState = locationPageListViewModel.uiStateSmallList.collectAsState().value
+                    LocationScreen(
+                        modifier = Modifier
+                            .clip(
+                                screensShape
+                            )
+                            .background(
+                                MaterialTheme.colorScheme.surfaceContainer
+                            ),
+                        exerciseListUiState = exerciseListUiState,
+                        onExerciseListEvent = exerciseListViewModel::onListEvent,
+                        exerciseScreenModifier = Modifier
                             .clip(
                                 screensShape
                             )
@@ -102,31 +124,9 @@ fun RickAndMortyWikiApp(
                         innerPadding = innerPadding
                     )
                 }
-                composable<LocationsScreenRoute> {
-                    val locationPageListViewModel: LocationPageListViewModel = hiltViewModel()
-                    val locationListUiState = locationPageListViewModel.uiStateSmallList.collectAsState().value
-                    LocationScreen(
-//                        modifier = Modifier
-//                            .clip(
-//                                screensShape
-//                            )
-//                            .background(
-//                                MaterialTheme.colorScheme.surfaceContainer
-//                            ),
-//                        exerciseListUiState = exerciseListUiState,
-//                        onExerciseListEvent = exerciseListViewModel::onListEvent,
-//                        exerciseScreenModifier = Modifier
-//                            .clip(
-//                                screensShape
-//                            )
-//                            .background(MaterialTheme.colorScheme.surface),
-//                        contentType = contentType,
-//                        innerPadding = innerPadding
-                    )
-                }
                 composable<EpisodesScreenRoute> {
-                    val episodeViewModel: EpisodeViewModel = hiltViewModel()
-                    val episodeUiState = episodeViewModel.uiStateSmallList.collectAsState().value
+                    val episodeViewModel: EpisodeSmallListViewModel = hiltViewModel()
+                    val episodeUiState = episodeViewModel.collectAsState().value
                     EpisodeScreen(
 //                        modifier = Modifier.padding(innerPadding),
 //                        contentType = contentType,
@@ -140,71 +140,56 @@ fun RickAndMortyWikiApp(
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
 
-    val navigationBarLayout = @Composable {
-        NavigationBarLayout(
-            modifier = Modifier,
-            currentDestination = currentDestination,
-            onMenuItemSelected = {
-                navController.navigate(route = it) {
-                    popUpTo(navController.graph.findStartDestination().id) {
-                        saveState = true
-                    }
-                    launchSingleTop = true
-                    restoreState = true
-                }
-            }
-        ) { innerPadding ->
-            navHost(innerPadding)
-        }
-    }
-
-    val navigationRailLayout = @Composable {
-        NavigationRailLayout(
-            modifier = Modifier,
-            currentDestination = currentDestination,
-            onMenuItemSelected = {
-                navController.navigate(it) {
-                    popUpTo(navController.graph.findStartDestination().id) {
-                        saveState = true
-                    }
-                    launchSingleTop = true
-                    restoreState = true
-                }
-            }
-        ) { innerPadding ->
-            navHost(innerPadding)
-        }
-    }
-
-    val permanentNavigationDrawerLayout = @Composable {
-        PermanentNavigationDrawerLayout(
-            modifier = Modifier,
-            currentDestination = currentDestination,
-            onMenuItemSelected = {
-                navController.navigate(it) {
-                    popUpTo(navController.graph.findStartDestination().id) {
-                        saveState = true
-                    }
-                    launchSingleTop = true
-                    restoreState = true
-                }
-            }
-        ) { innerPadding ->
-            navHost(innerPadding)
-        }
-    }
-
     when (navigationType) {
         NavigationType.BOTTOM_NAVIGATION -> {
-            navigationBarLayout()
+            NavigationBarLayout(
+                currentDestination = currentDestination,
+                onMenuItemSelected = {
+                    navController.navigate(route = it) {
+                        popUpTo(navController.graph.findStartDestination().id) {
+                            saveState = true
+                        }
+                        launchSingleTop = true
+                        restoreState = true
+                    }
+                }
+            ) {
+                navHost()
+            }
         }
 
         NavigationType.NAVIGATION_RAIL -> {
-            navigationRailLayout()
+            NavigationRailLayout(
+                currentDestination = currentDestination,
+                onMenuItemSelected = {
+                    navController.navigate(it) {
+                        popUpTo(navController.graph.findStartDestination().id) {
+                            saveState = true
+                        }
+                        launchSingleTop = true
+                        restoreState = true
+                    }
+                }
+            ) {
+                navHost()
+            }
         }
 
         NavigationType.PERMANENT_NAVIGATION_DRAWER -> {
-            permanentNavigationDrawerLayout()
+            PermanentNavigationDrawerLayout(
+                currentDestination = currentDestination,
+                onMenuItemSelected = {
+                    navController.navigate(it) {
+                        popUpTo(navController.graph.findStartDestination().id) {
+                            saveState = true
+                        }
+                        launchSingleTop = true
+                        restoreState = true
+                    }
+                }
+            ) { innerPadding ->
+                navHost()
+            }
         }
     }
 }

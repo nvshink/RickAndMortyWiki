@@ -1,7 +1,10 @@
 package com.nvshink.rickandmortywiki.ui.character.viewmodel
 
+import android.util.Log
+import androidx.compose.animation.SharedTransitionScope
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.nvshink.data.generic.local.datasource.DataSourceManager
 import com.nvshink.domain.character.model.CharacterFilterModel
 import com.nvshink.domain.character.repository.CharacterRepository
 import com.nvshink.domain.resource.PageInfoModel
@@ -13,25 +16,39 @@ import com.nvshink.rickandmortywiki.ui.utils.ContentType
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.channels.BufferOverflow
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @OptIn(ExperimentalCoroutinesApi::class, FlowPreview::class)
 @HiltViewModel
 open class CharacterPageListViewModel @Inject constructor(
-    private val repository: CharacterRepository
+    private val repository: CharacterRepository,
+    private val dataSourceManager: DataSourceManager
 ) : ViewModel() {
+
+    private val _reloadCounts = MutableStateFlow(0)
     private val _isRefresh = MutableStateFlow(false)
-    private val _isLoadMore = MutableStateFlow(false)
     private val _contentType = MutableStateFlow(ContentType.LIST_ONLY)
-    private val _pageInfoModel = MutableStateFlow<PageInfoModel?>(null)
+    private val _pageInfoModel = MutableStateFlow(PageInfoModel(next = null, prev = null))
+    private val pageInfoModel = combine(_pageInfoModel, _isRefresh){ pageInfoModel, isRefresh ->
+        if (isRefresh) {
+            PageInfoModel(next = null, prev = null)
+        } else {
+            pageInfoModel
+        }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(), PageInfoModel(next = null, prev = null))
+    private val _isLocal = dataSourceManager.isLocal
     private val _filter = MutableStateFlow(
         CharacterFilterModel(
             name = null,
@@ -41,17 +58,42 @@ open class CharacterPageListViewModel @Inject constructor(
             gender = null
         )
     )
-    private val filter = _filter.asStateFlow().debounce(1000L)
+    private val _searchQuery = MutableStateFlow("")
+    private val searchQuery = _searchQuery.asStateFlow().debounce(1000L)
+    private val filter = combine(_filter, searchQuery) { filter, searchQuery ->
+        _isRefresh.update { true }
+        filter.copy(name = searchQuery.ifBlank { null })
+    }.stateIn(
+        viewModelScope,
+        SharingStarted.WhileSubscribed(),
+        CharacterFilterModel(
+            name = null,
+            status = null,
+            species = null,
+            type = null,
+            gender = null
+        )
+    )
 
     private val _characters = combine(
         filter,
-        _isLoadMore,
-        _isRefresh
-    ) { filter, _, _ ->
-        _isLoadMore.update { false }
-        _isRefresh.update { false }
-        repository.getCharacters(pageInfoModel = _pageInfoModel.value, filterModel = filter)
-    }.flatMapLatest { flow -> flow }
+        _reloadCounts,
+        _isLocal
+    ) { filter, _, isLocal ->
+        if (!isLocal) {
+            repository.getCharactersApi(
+                pageInfoModel = pageInfoModel.value,
+                filterModel = filter
+            ).flatMapLatest { response ->
+                flow {
+                    _pageInfoModel.update { response.first }
+                    emit(response.second)
+                }
+            }
+        } else {
+            repository.getCharactersDB(filterModel = filter)
+        }
+    }.flatMapLatest { it }
         .stateIn(
             viewModelScope,
             SharingStarted.WhileSubscribed(5000),
@@ -72,33 +114,36 @@ open class CharacterPageListViewModel @Inject constructor(
                     LoadingState(
                         characterList = uiState.characterList,
                         currentCharacter = uiState.currentCharacter,
-                        isShowingList = uiState.isShowingList,
                         contentType = contentType,
                         filter = uiState.filter,
                         isShowingFilter = uiState.isShowingFilter,
                         isAtTop = uiState.isAtTop,
+                        isLocal = _isLocal.value,
                         searchBarText = uiState.searchBarText,
                         searchBarFiltersText = uiState.searchBarFiltersText,
+                        isRefreshing = _isRefresh.value
                     )
                 }
             }
 
             is Resource.Success -> {
-                val newCharacterList = characters.data.second
-                var characterList =
+                val newCharacterList = characters.data
+                var characterList = if (uiState.isRefreshing) {
+                    _isRefresh.update { false }
+                    newCharacterList
+                } else {
                     (uiState.characterList + newCharacterList).associateBy { it.id }.values.toList()
-                _pageInfoModel.update { characters.data.first }
+                }
                 _uiState.update {
                     SuccessState(
-                        isLocal = characters.isLocal,
                         characterList = characterList,
                         currentCharacter = uiState.currentCharacter,
                         filter = uiState.filter,
-                        isShowingList = uiState.isShowingList,
                         contentType = contentType,
                         isShowingFilter = uiState.isShowingFilter,
                         isAtTop = uiState.isAtTop,
-                        isRefreshing = false,
+                        isRefreshing = _isRefresh.value,
+                        isLocal = _isLocal.value,
                         searchBarText = uiState.searchBarText,
                         searchBarFiltersText = uiState.searchBarFiltersText,
                     )
@@ -106,18 +151,20 @@ open class CharacterPageListViewModel @Inject constructor(
             }
 
             is Resource.Error -> {
+                _isRefresh.update { false }
                 _uiState.update {
                     ErrorState(
                         error = characters.exception,
-                        characterList = uiState.characterList,
+                        characterList = if (uiState.isRefreshing) emptyList() else uiState.characterList,
                         currentCharacter = uiState.currentCharacter,
                         filter = uiState.filter,
-                        isShowingList = uiState.isShowingList,
                         contentType = contentType,
                         isShowingFilter = uiState.isShowingFilter,
                         isAtTop = uiState.isAtTop,
+                        isLocal = _isLocal.value,
                         searchBarText = uiState.searchBarText,
                         searchBarFiltersText = uiState.searchBarFiltersText,
+                        isRefreshing = _isRefresh.value
                     )
                 }
             }
@@ -131,48 +178,13 @@ open class CharacterPageListViewModel @Inject constructor(
 
     fun onEvent(event: CharacterPageListEvent) {
         when (event) {
-            is CharacterPageListEvent.UpdateCurrentCharacter -> {
-                _uiState.update {
-                    when (it) {
-                        is LoadingState -> it.copy(currentCharacter = event.character)
-                        is SuccessState -> it.copy(currentCharacter = event.character)
-                        is ErrorState -> it.copy(currentCharacter = event.character)
-                        else -> it
-                    }
-                }
-            }
 
-            CharacterPageListEvent.LoadMore -> _isLoadMore.update { true }
-            CharacterPageListEvent.ClearFilterSelection -> {
-                _filter.update {
-                    CharacterFilterModel(
-                        name = null,
-                        status = null,
-                        species = null,
-                        type = null,
-                        gender = null
-                    )
-                }
-            }
+            CharacterPageListEvent.LoadMore -> reloadCharacters()
 
             is CharacterPageListEvent.SetFilter -> {
-                _pageInfoModel.update { null }
                 _filter.update {
                     event.filter
                 }
-//                _uiState.update {
-//                    LoadingState(
-//                        currentCharacter = it.currentCharacter,
-//                        filter = it.filter,
-//                        isShowingList = it.isShowingList,
-//                        isShowingFilter = it.isShowingFilter,
-//                        isAtTop = it.isAtTop,
-//                        isRefreshing = it.isRefreshing,
-//                        searchBarText = it.searchBarText,
-//                        searchBarFiltersText = it.searchBarFiltersText,
-//                        contentType = it.contentType
-//                    )
-//                }
             }
 
             is CharacterPageListEvent.SetUiStateFilter -> {
@@ -183,16 +195,33 @@ open class CharacterPageListViewModel @Inject constructor(
                         is ErrorState -> it.copy(filter = event.filter)
                         else -> it
                     }
+                }
+            }
 
+            CharacterPageListEvent.ClearFilterUi -> {
+                val emptyFilter = CharacterFilterModel(
+                    name = null,
+                    status = null,
+                    species = null,
+                    type = null,
+                    gender = null
+                )
+                _uiState.update {
+                    when (it) {
+                        is SuccessState -> it.copy(filter = emptyFilter)
+                        is LoadingState -> it.copy(filter = emptyFilter)
+                        is ErrorState -> it.copy(filter = emptyFilter)
+                        else -> it
+                    }
                 }
             }
 
             CharacterPageListEvent.ShowFilterDialog -> {
                 _uiState.update {
                     when (it) {
-                        is SuccessState -> it.copy(isShowingFilter = true)
-                        is LoadingState -> it.copy(isShowingFilter = true)
-                        is ErrorState -> it.copy(isShowingFilter = true)
+                        is SuccessState -> it.copy(isShowingFilter = true, filter = _filter.value)
+                        is LoadingState -> it.copy(isShowingFilter = true, filter = _filter.value)
+                        is ErrorState -> it.copy(isShowingFilter = true, filter = _filter.value)
                         else -> it
                     }
                 }
@@ -209,43 +238,29 @@ open class CharacterPageListViewModel @Inject constructor(
                 }
             }
 
-            CharacterPageListEvent.HideList -> {
-                _uiState.update {
-                    when (it) {
-                        is SuccessState -> it.copy(isShowingList = false)
-                        is LoadingState -> it.copy(isShowingList = false)
-                        is ErrorState -> it.copy(isShowingList = false)
-                        else -> it
-                    }
-                }
-            }
-
-            CharacterPageListEvent.ShowList -> {
-                _uiState.update {
-                    when (it) {
-                        is SuccessState -> it.copy(isShowingList = true)
-                        is LoadingState -> it.copy(isShowingList = true)
-                        is ErrorState -> it.copy(isShowingList = true)
-                        else -> it
-                    }
-                }
-            }
-
             CharacterPageListEvent.RefreshList -> {
-                _pageInfoModel.update { null }
                 _isRefresh.update { true }
-                _uiState.update { LoadingState(isRefreshing = true, filter = it.filter) }
+                reloadCharacters()
             }
 
             is CharacterPageListEvent.SetContentType -> _contentType.update { event.contentType }
-            is CharacterPageListEvent.SetSearchBarText -> _uiState.update {
-                when (it) {
-                    is LoadingState -> it.copy(searchBarText = event.text)
-                    is SuccessState -> it.copy(searchBarText = event.text)
-                    is ErrorState -> it.copy(searchBarText = event.text)
-                    else -> it
+            is CharacterPageListEvent.SetSearchBarText -> {
+                _uiState.update {
+                    when (it) {
+                        is LoadingState -> it.copy(searchBarText = event.text)
+                        is SuccessState -> it.copy(searchBarText = event.text)
+                        is ErrorState -> it.copy(searchBarText = event.text)
+                        else -> it
+                    }
                 }
+                _searchQuery.update { event.text }
             }
+
+            is CharacterPageListEvent.SetIsLocal -> dataSourceManager.setLocal(event.isLocal)
         }
+    }
+
+    private fun reloadCharacters() {
+        _reloadCounts.update { it + 1 }
     }
 }

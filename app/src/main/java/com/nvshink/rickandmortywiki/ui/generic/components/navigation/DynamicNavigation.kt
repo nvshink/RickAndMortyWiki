@@ -1,12 +1,7 @@
 package com.nvshink.rickandmortywiki.ui.generic.components.navigation
 
-import android.util.Log
-import androidx.compose.animation.AnimatedContentTransitionScope
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
-import androidx.compose.animation.core.FastOutLinearInEasing
-import androidx.compose.animation.core.FastOutSlowInEasing
-import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
@@ -18,14 +13,10 @@ import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Person
-import androidx.compose.material3.adaptive.layout.ListDetailPaneScaffoldDefaults
-import androidx.compose.material3.adaptive.layout.PaneMotionDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.IntOffset
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -79,7 +70,10 @@ fun DynamicNavigation(
             CharacterItemScreen(
                 modifier = itemModifier,
                 detailUiState = characterDetailUiState,
-                onBackPressed = {
+                onRefreshClick = {
+                    onCharacterDetailEvent(CharacterDetailEvent.Refresh)
+                },
+                onBackClick = {
                     if (!navController.navigateUp()) {
                         onBack()
                     }

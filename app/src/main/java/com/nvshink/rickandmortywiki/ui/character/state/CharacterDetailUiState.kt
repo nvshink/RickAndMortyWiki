@@ -8,43 +8,23 @@ import com.nvshink.rickandmortywiki.ui.utils.ContentType
 import java.time.ZonedDateTime
 
 interface CharacterDetailUiState {
-    val character: CharacterModel?
+    val isLocal: Boolean
     val contentType: ContentType
 
     data class LoadingState(
-        override val character: CharacterModel? = null,
+        override val isLocal: Boolean = false,
         override val contentType: ContentType = ContentType.LIST_ONLY
     ) : CharacterDetailUiState
 
     data class ViewState(
-        override val character: CharacterModel = CharacterModel(
-            id = 0,
-            name = "",
-            status = CharacterStatus.UNKNOWN,
-            species = "",
-            type = "",
-            gender = CharacterGender.UNKNOWN,
-            origin = CharacterLocationModel(
-                id = 0,
-                name = "",
-                url = ""
-            ),
-            location = CharacterLocationModel(
-                id = 0,
-                name = "",
-                url = ""
-            ),
-            image = "",
-            episode = emptyList(),
-            url = "",
-            created = ZonedDateTime.now()
-        ),
-        override val contentType: ContentType = ContentType.LIST_ONLY
+        val character: CharacterModel,
+        override val isLocal: Boolean,
+        override val contentType: ContentType
     ) : CharacterDetailUiState
 
     data class ErrorState(
-        val errorMessage: String = "",
-        override val character: CharacterModel? = null,
-        override val contentType: ContentType = ContentType.LIST_ONLY
+        val error: Exception,
+        override val isLocal: Boolean,
+        override val contentType: ContentType
     ) : CharacterDetailUiState
 }

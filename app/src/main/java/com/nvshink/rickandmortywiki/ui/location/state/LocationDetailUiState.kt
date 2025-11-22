@@ -5,30 +5,23 @@ import com.nvshink.rickandmortywiki.ui.utils.ContentType
 import java.time.ZonedDateTime
 
 interface LocationDetailUiState {
-    val location: LocationModel?
+    val isLocal: Boolean
     val contentType: ContentType
 
     data class LoadingState(
-        override val location: LocationModel? = null,
+        override val isLocal: Boolean = false,
         override val contentType: ContentType = ContentType.LIST_ONLY
     ) : LocationDetailUiState
 
     data class ViewState(
-        override val location: LocationModel = LocationModel(
-            id = 0,
-            name = "",
-            type = "",
-            dimension = "",
-            residents = emptyList(),
-            url = "",
-            created = ZonedDateTime.now()
-        ),
-        override val contentType: ContentType = ContentType.LIST_ONLY
+        val location: LocationModel,
+        override val isLocal: Boolean,
+        override val contentType: ContentType
     ) : LocationDetailUiState
 
     data class ErrorState(
-        val errorMessage: String = "",
-        override val location: LocationModel? = null,
-        override val contentType: ContentType = ContentType.LIST_ONLY
+        val error: Exception,
+        override val isLocal: Boolean,
+        override val contentType: ContentType
     ) : LocationDetailUiState
 }

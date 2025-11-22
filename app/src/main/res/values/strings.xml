@@ -3,7 +3,11 @@
     <string name="icon_error_description">Error icon</string>
     <string name="icon_description_arrow_upward">Arrow up icon</string>
     <string name="empty_screen_title_character">Choice character for view more information.</string>
+    <string name="empty_screen_title_location">Choice location for view more information.</string>
+    <string name="empty_screen_title_episode">Choice episode for view more information.</string>
     <string name="empty_screen_icon_description_character">Person icon</string>
+    <string name="empty_screen_icon_description_location">Location icon</string>
+    <string name="empty_screen_icon_description_episode">Episode icon</string>
     <string name="empty_list_icon_description_characters">Empty list</string>
     <string name="empty_list_icon_description_locations">Empty list</string>
     <string name="empty_list_icon_description_episodes">Empty list</string>
@@ -14,6 +18,8 @@
     <string name="button_confirm">Confirm</string>
     <string name="button_refresh">Refresh</string>
     <string name="button_retry">Retry</string>
+    <string name="button_offline_turn_on">Go to offline</string>
+    <string name="button_offline_turn_off">Go to online</string>
     <string name="character_gender_male">Male</string>
     <string name="character_gender_female">Female</string>
     <string name="character_gender_genderless">Genderless</string>
@@ -25,7 +31,7 @@
     <string name="character_species_filter_title">Species</string>
     <string name="character_gender_filter_title">Gender</string>
     <string name="character_type_filter_title">Type</string>
-    <string name="character_location_title">Location</string>
+    <string name="character_location_title">Location</string>e
     <string name="character_origin_title">Origin</string>
     <string name="character_episodes_title">Episodes</string>
     <string name="character_episodes_description_1">Participated in </string>

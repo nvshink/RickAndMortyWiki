@@ -1,8 +1,10 @@
 package com.nvshink.rickandmortywiki.ui.generic.components.navigation.layouts
 
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
@@ -24,19 +26,21 @@ import com.nvshink.rickandmortywiki.ui.utils.Destinations
 
 @Composable
 fun NavigationRailLayout(
-    modifier: Modifier,
+    modifier: Modifier = Modifier,
     currentDestination: NavDestination?,
     onMenuItemSelected: (Any) -> Unit,
-    content: @Composable (innerPadding: PaddingValues) -> Unit
+    content: @Composable () -> Unit
 ) {
     val topLevelRoutes = Destinations.getTopLevelRoutes()
     Scaffold { innerPadding ->
-        Row(modifier = modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.primaryContainer)) {
+        Row(
+            modifier = modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+        ) {
             NavigationRail(
-                modifier = Modifier.width(80.dp),
-                containerColor = MaterialTheme.colorScheme.primaryContainer) {
+                windowInsets = WindowInsets()
+            ) {
                 topLevelRoutes.forEach { item ->
                     NavigationRailItem(
                         modifier = Modifier.padding(horizontal = 12.dp),
@@ -46,15 +50,6 @@ fun NavigationRailLayout(
                         icon = {
                             Icon(imageVector = item.icon, contentDescription = item.name)
                         },
-                        colors = NavigationRailItemColors(
-                            selectedIconColor = MaterialTheme.colorScheme.onSecondary,
-                            selectedTextColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                            selectedIndicatorColor = MaterialTheme.colorScheme.secondary,
-                            unselectedTextColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                            unselectedIconColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                            disabledIconColor = MaterialTheme.colorScheme.outlineVariant,
-                            disabledTextColor = MaterialTheme.colorScheme.outlineVariant
-                        ),
                         selected = currentDestination?.hierarchy?.any { it.hasRoute(item.route::class) } == true,
                         onClick = {
                             onMenuItemSelected(item.route)
@@ -63,7 +58,7 @@ fun NavigationRailLayout(
                     )
                 }
             }
-            content(innerPadding)
+            content()
         }
     }
 }

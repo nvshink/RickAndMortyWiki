@@ -1,8 +1,8 @@
 package com.nvshink.domain.episode.repository
 
+import com.nvshink.domain.character.model.CharacterModel
 import com.nvshink.domain.episode.model.EpisodeFilterModel
 import com.nvshink.domain.episode.model.EpisodeModel
-import com.nvshink.domain.episode.utils.EpisodeSortFields
 import com.nvshink.domain.resource.PageInfoModel
 import com.nvshink.domain.resource.Resource
 import com.nvshink.domain.resource.SortTypes
@@ -10,23 +10,44 @@ import kotlinx.coroutines.flow.Flow
 
 interface EpisodeRepository {
     /**
-     * Get list of episodes and page if data is remote:
-     * @param sortType Indicates the order in which the list will be sorted.
-     * @param sortField Determines which field will be sorted by.
-     * @param pageInfoModel Current page information. If data is from cache it is null.
+     * Get list of episodes and page from API:
+     * @param pageInfoModel Current page information.
      * @param filterModel Defines which fields and values will be filtered by.
      */
-    suspend fun getListOfEpisodes(
-        sortType: SortTypes,
-        sortField: EpisodeSortFields,
+    suspend fun getEpisodesApi(
         pageInfoModel: PageInfoModel,
         filterModel: EpisodeFilterModel
-    ): Flow<Resource<Pair<PageInfoModel?, List<EpisodeModel>>>>
-
+    ): Flow<Pair<PageInfoModel, Resource<List<EpisodeModel>>>>
 
     /**
-     * Get list of episodes by list id.
+     * Get list of episodes by list id from API.
      * @param ids List of Episode id numbers.
      */
-    suspend fun getEpisodesByIds(ids: List<Int>): Flow<Resource<List<EpisodeModel>>>
+    suspend fun getEpisodesByIdsApi(ids: List<Int>): Flow<Resource<List<EpisodeModel>>>
+
+    /**
+     * Get episode by id from API.
+     * @param id Episode id numbers.
+     */
+    suspend fun getEpisodeByIdApi(id: Int): Flow<Resource<EpisodeModel>>
+
+    /**
+     * Get list of episodes from DB:
+     * @param filterModel Defines which fields and values will be filtered by.
+     */
+    suspend fun getEpisodesDB(
+        filterModel: EpisodeFilterModel
+    ): Flow<Resource<List<EpisodeModel>>>
+
+    /**
+     * Get list of episodes by list id from DB.
+     * @param ids List of Episode id numbers.
+     */
+    suspend fun getEpisodesByIdsDB(ids: List<Int>): Flow<Resource<List<EpisodeModel>>>
+
+    /**
+     * Get episode by id from DB.
+     * @param id Episode id numbers.
+     */
+    suspend fun getEpisodeByIdDB(id: Int): Flow<Resource<EpisodeModel>>
 }

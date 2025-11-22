@@ -2,145 +2,205 @@ package com.nvshink.data.episode.repository
 
 import android.util.Log
 import com.nvshink.data.episode.local.dao.EpisodeDao
+import com.nvshink.data.episode.network.response.EpisodeResponse
 import com.nvshink.data.episode.network.service.EpisodeService
 import com.nvshink.data.episode.utils.EpisodeMapper
+import com.nvshink.data.generic.local.datasource.DataSourceManager
+import com.nvshink.data.generic.network.response.PageResponse
 import com.nvshink.domain.episode.model.EpisodeFilterModel
 import com.nvshink.domain.episode.model.EpisodeModel
-import com.nvshink.domain.episode.repository.EpisodeRepository
-import com.nvshink.domain.episode.utils.EpisodeSortFields
 import com.nvshink.domain.resource.PageInfoModel
+import com.nvshink.domain.episode.repository.EpisodeRepository
 import com.nvshink.domain.resource.Resource
-import com.nvshink.domain.resource.SortTypes
+import jakarta.inject.Inject
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
-import javax.inject.Inject
+import kotlin.coroutines.cancellation.CancellationException
 
 class EpisodeRepositoryImpl @Inject constructor(
     private val dao: EpisodeDao,
     private val service: EpisodeService
 ) : EpisodeRepository {
-    override suspend fun getListOfEpisodes(
-        sortType: SortTypes,
-        sortField: EpisodeSortFields,
+    /**
+     * Get list of episodes and page if data is remote:
+     * @param pageInfoModel Current page information. If data is from cache it is null.
+     * @param filterModel Defines which fields and values will be filtered by.
+     */
+    override suspend fun getEpisodesApi(
         pageInfoModel: PageInfoModel,
         filterModel: EpisodeFilterModel
-    ): Flow<Resource<Pair<PageInfoModel?, List<EpisodeModel>>>> = flow {
-        emit(Resource.Loading)
+    ): Flow<Pair<PageInfoModel, Resource<List<EpisodeModel>>>> = flow {
+        emit(Pair(pageInfoModel, Resource.Loading))
         try {
-            //Make query
-            val queryString =
-                if (pageInfoModel.prev != null) {
-                    pageInfoModel.next
-                } else {
-                    "name=${filterModel.name ?: ""}&episode=${filterModel.episode ?: ""}"
-                }
             //If the function is called, but the query is empty, an empty value is returned.
-            if (queryString != null) {
-                val response = service.getGetListOfEpisodes(queryString)
-
-                //Separate info and result
-                val responseInfo = response.info
-                val responseResult = response.results
-
-
-                val newEpisodePageInfoModel = pageInfoModel.copy(
-                    next = responseInfo.next,
-                    prev = responseInfo.prev
+            var response: PageResponse<EpisodeResponse>
+            if (pageInfoModel.next != null) {
+                response = service.getGetListOfEpisodesByUrl(pageInfoModel.next!!)
+            } else if (pageInfoModel.prev == null) {
+                response = service.getGetListOfEpisodesByParams(
+                    name = filterModel.name ?: "",
+                    episode = filterModel.episode ?: ""
                 )
-
-                //White result in local DB
-                responseResult.forEach {
-                    dao.upsertEpisode(EpisodeMapper.responseToEntity(it))
-                }
-                // Return episodes
+            } else {
                 emit(
-                    Resource.Success(
-                        Pair(
-                            first = newEpisodePageInfoModel,
-                            second = responseResult.map {
-                                EpisodeMapper.responseToModel(it)
-                            }
+                    Pair(
+                        first = pageInfoModel,
+                        second = Resource.Success(
+                            emptyList()
                         )
                     )
                 )
-            } else emit(
-                Resource.Success(
-                    Pair(
-                        first = pageInfoModel,
-                        second = emptyList()
+                return@flow
+            }
+
+            //Separate info and result
+            val responseInfo = response.info
+            val responseResult = response.results
+
+            val newEpisodePageInfoModel = PageInfoModel(
+                next = responseInfo.next,
+                prev = responseInfo.prev
+            )
+
+            //White result in local DB
+            responseResult.forEach {
+                dao.upsertEpisode(EpisodeMapper.responseToEntity(it))
+            }
+
+            // Return episodes
+            emit(
+                Pair(
+                    first = newEpisodePageInfoModel,
+                    second = Resource.Success(responseResult.map {
+                        EpisodeMapper.responseToModel(it)
+                    }
                     )
                 )
             )
+        } catch (ce: CancellationException) {
+            throw ce
         } catch (e: Exception) {
-            Log.d("DATA_LOAD", e.message ?: "")
-            //Try load from cache
-            try {
-                dao.getEpisodes(
-                    name = filterModel.name,
-                    episode = filterModel.episode
-                ).map {
-                    it.map { episodeEntity ->
-                        EpisodeMapper.entityToModel(episodeEntity)
-                    }
-                }.collect { newsModel ->
-                    emit(
-                        Resource.Success(
-                            data = Pair(
-                                first = null,
-                                second = newsModel
-                            ),
-                            isLocal = true,
-                            onlineException = e
-                        )
-                    )
-
-                }
-            } catch (dbException: Throwable) {
-                emit(Resource.Error(dbException, Pair(first = null, second = emptyList())))
-            }
+            Log.d("DATA_LOAD", "Episodes error: ${e.message}")
+            emit(Pair(pageInfoModel,Resource.Error(exception = e)))
         }
     }
 
     /**
-     * Get list of episodes by list id.
+     * Get list of episodes by list ids from API.
      * @param ids List of Episode id numbers.
      */
-    override suspend fun getEpisodesByIds(ids: List<Int>): Flow<Resource<List<EpisodeModel>>> =
+    override suspend fun getEpisodesByIdsApi(ids: List<Int>): Flow<Resource<List<EpisodeModel>>> =
         flow {
             emit(Resource.Loading)
             try {
-                var idsString = ""
-                ids.forEach {
-                    idsString += "${it},"
-                }
-                val response = service.getGetEpisodesByIds(idsString)
+                var path = ""
+                ids.forEach { id -> path += "$id," }
+                val response = service.getGetEpisodesByPath(path.dropLast(1))
                 response.forEach {
                     dao.upsertEpisode(EpisodeMapper.responseToEntity(it))
                 }
                 emit(Resource.Success(response.map {
                     EpisodeMapper.responseToModel(it)
                 }))
+            } catch (ce: CancellationException) {
+                throw ce
             } catch (e: Exception) {
-                Log.d("DATA_LOAD", e.message ?: "")
-                try {
-                    val cachedEpisodes: MutableList<EpisodeModel> = mutableListOf()
-                    ids.map {
-                        dao.getEpisodesById(it).collect { cachedEntity ->
-                            val cachedModel = EpisodeMapper.entityToModel(cachedEntity)
-                            cachedEpisodes.add(cachedModel.id, cachedModel)
-                        }
-                    }
-                    emit(
-                        Resource.Success(
-                            data = cachedEpisodes,
-                            isLocal = true,
-                            onlineException = e
-                        )
-                    )
-                } catch (dbException: Throwable) {
-                    emit(Resource.Error(dbException, emptyList()))
-                }
+                Log.d("DATA_LOAD", "Episode by ids error: ${e.message}")
+                emit(Resource.Error(exception = e))
             }
         }
+
+    /**
+     * Get episodes by id from API.
+     * @param id Episode id number.
+     */
+    override suspend fun getEpisodeByIdApi(id: Int): Flow<Resource<EpisodeModel>> = flow {
+        emit(Resource.Loading)
+        try {
+            val response = service.getGetEpisodeById(id)
+            dao.upsertEpisode(EpisodeMapper.responseToEntity(response))
+            emit(
+                Resource.Success(
+                    (EpisodeMapper.responseToModel(response))
+                )
+            )
+        } catch (ce: CancellationException) {
+            throw ce
+        } catch (e: Exception) {
+            Log.d("DATA_LOAD", "Episode by id error: ${e.message}")
+            emit(Resource.Error(exception = e))
+        }
+    }
+
+    override suspend fun getEpisodesDB(
+        filterModel: EpisodeFilterModel
+    ): Flow<Resource<List<EpisodeModel>>> = flow {
+        emit(Resource.Loading)
+        //Try load from cache
+        try {
+            dao.getEpisodes(
+                name = filterModel.name,
+                episode = filterModel.episode,
+            ).map {
+                it.map { episodeEntity ->
+                    EpisodeMapper.entityToModel(episodeEntity)
+                }
+            }.collect { episodes ->
+                emit(
+                    Resource.Success(
+                        data = episodes
+                    )
+                )
+            }
+        } catch (ce: CancellationException) {
+            throw ce
+        } catch (dbException: Exception) {
+            Log.d("DATA_LOAD", "Episodes db error: ${dbException.message}")
+            emit(Resource.Error(exception = dbException))
+        }
+    }
+
+    override suspend fun getEpisodesByIdsDB(ids: List<Int>): Flow<Resource<List<EpisodeModel>>> =
+        flow {
+            emit(Resource.Loading)
+            try {
+                val cachedEpisodes: MutableList<EpisodeModel> = mutableListOf()
+                ids.map {
+                    dao.getEpisodesById(it).collect { cachedEntity ->
+                        val cachedModel = EpisodeMapper.entityToModel(cachedEntity)
+                        cachedEpisodes.add(cachedModel.id, cachedModel)
+                    }
+                }
+                emit(
+                    Resource.Success(
+                        data = cachedEpisodes
+                    )
+                )
+            } catch (ce: CancellationException) {
+                throw ce
+            } catch (dbException: Exception) {
+                Log.d("DATA_LOAD", "Episodes by ids db error: ${dbException.message}")
+                emit(Resource.Error(exception = dbException))
+            }
+        }
+
+    override suspend fun getEpisodeByIdDB(id: Int): Flow<Resource<EpisodeModel>> = flow {
+        try {
+            dao.getEpisodesById(id).collect { cachedEntity ->
+                emit(
+                    Resource.Success(
+                        data = EpisodeMapper.entityToModel(cachedEntity)
+                    )
+                )
+            }
+
+        } catch (ce: CancellationException) {
+            throw ce
+        } catch (dbException: Exception) {
+            Log.d("DATA_LOAD", "Episodes by id db error: ${dbException.message}")
+            emit(Resource.Error(exception = dbException))
+        }
+    }
+
 }

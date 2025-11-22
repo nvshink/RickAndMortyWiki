@@ -17,6 +17,7 @@ import java.time.ZonedDateTime
  * @param url Link to the character's own URL endpoint.
  * @param created Time at which the character was created in the database.
  */
+
 data class CharacterModel(
     val id: Int,
     val name: String,

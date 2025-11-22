@@ -15,6 +15,8 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
+import kotlin.collections.map
+import kotlin.coroutines.cancellation.CancellationException
 
 class LocationRepositoryImpl @Inject constructor(
     private val dao: LocationDao,
@@ -25,34 +27,32 @@ class LocationRepositoryImpl @Inject constructor(
      * @param pageInfoModel Current page information. If data is from cache it is null.
      * @param filterModel Defines which fields and values will be filtered by.
      */
-    override suspend fun getLocations(
-        pageInfoModel: PageInfoModel?,
+    override suspend fun getLocationsApi(
+        pageInfoModel: PageInfoModel,
         filterModel: LocationFilterModel
-    ): Flow<Resource<Pair<PageInfoModel?, List<LocationModel>>>> = flow {
-        emit(Resource.Loading)
+    ): Flow<Pair<PageInfoModel, Resource<List<LocationModel>>>> = flow {
+        emit(Pair(pageInfoModel, Resource.Loading))
         try {
             //If the function is called, but the query is empty, an empty value is returned.
             var response: PageResponse<LocationResponse>
-            if (pageInfoModel != null) {
-                if (pageInfoModel.next != null) {
-                    response = service.getGetListOfLocationsByUrl(pageInfoModel.next!!)
-                } else {
-                    emit(
-                        Resource.Success(
-                            Pair(
-                                first = pageInfoModel,
-                                second = emptyList()
-                            )
-                        )
-                    )
-                    return@flow
-                }
-            } else {
+            if (pageInfoModel.next != null) {
+                response = service.getGetListOfLocationsByUrl(pageInfoModel.next!!)
+            } else if (pageInfoModel.prev == null) {
                 response = service.getGetListOfLocationsByParams(
                     name = filterModel.name ?: "",
                     type = filterModel.type ?: "",
                     dimension = filterModel.dimension ?: ""
                 )
+            } else {
+                emit(
+                    Pair(
+                        first = pageInfoModel,
+                        second = Resource.Success(
+                            emptyList()
+                        )
+                    )
+                )
+                return@flow
             }
 
             //Separate info and result
@@ -60,7 +60,7 @@ class LocationRepositoryImpl @Inject constructor(
             val responseResult = response.results
 
 
-            val newPageInfoModel = pageInfoModel?.copy(
+            val newPageInfoModel = pageInfoModel.copy(
                 next = responseInfo.next,
                 prev = responseInfo.prev
             )
@@ -72,44 +72,19 @@ class LocationRepositoryImpl @Inject constructor(
 
             // Return locations
             emit(
-                Resource.Success(
-                    Pair(
-                        first = newPageInfoModel,
-                        second = responseResult.map {
-                            LocationMapper.responseToModel(it)
-                        }
+                Pair(
+                    first = newPageInfoModel,
+                    second = Resource.Success(responseResult.map {
+                        LocationMapper.responseToModel(it)
+                    }
                     )
                 )
             )
+        } catch (ce: CancellationException) {
+            throw ce
         } catch (e: Exception) {
-            Log.d("DATA_LOAD", "Location error: ${e.message}")
-            //Try load from cache
-            try {
-                dao.getLocations(
-                    name = filterModel.name,
-                    type = filterModel.type,
-                    dimension = filterModel.dimension
-                ).map {
-                    it.map { locationEntity ->
-                        LocationMapper.entityToModel(locationEntity)
-                    }
-                }.collect { newsModel ->
-                    emit(
-                        Resource.Success(
-                            data = Pair(
-                                first = null,
-                                second = newsModel
-                            ),
-                            isLocal = true,
-                            onlineException = e
-                        )
-                    )
-
-                }
-            } catch (dbException: Throwable) {
-                Log.d("DATA_LOAD", "Location db error: ${e.message}")
-                emit(Resource.Error(dbException, Pair(first = null, second = emptyList())))
-            }
+            Log.d("DATA_LOAD", "Location db error: ${e.message}")
+            emit(Pair(pageInfoModel,Resource.Error(e)))
         }
     }
 
@@ -117,7 +92,7 @@ class LocationRepositoryImpl @Inject constructor(
      * Get list of locations by list id.
      * @param ids List of Location id numbers.
      */
-    override suspend fun getLocationsByIds(ids: List<Int>): Flow<Resource<List<LocationModel>>> =
+    override suspend fun getLocationsByIdsApi(ids: List<Int>): Flow<Resource<List<LocationModel>>> =
         flow {
             emit(Resource.Loading)
             try {
@@ -130,30 +105,14 @@ class LocationRepositoryImpl @Inject constructor(
                 emit(Resource.Success(response.map {
                     LocationMapper.responseToModel(it)
                 }))
+            } catch (ce: CancellationException) {
+                throw ce
             } catch (e: Exception) {
-                Log.d("DATA_LOAD", "Location by ids error: ${e.message}")
-                try {
-                    val cachedLocations: MutableList<LocationModel> = mutableListOf()
-                    ids.map {
-                        dao.getLocationById(it).collect { cachedEntity ->
-                            val cachedModel = LocationMapper.entityToModel(cachedEntity)
-                            cachedLocations.add(cachedModel.id, cachedModel)
-                        }
-                    }
-                    emit(
-                        Resource.Success(
-                            data = cachedLocations,
-                            isLocal = true,
-                            onlineException = e
-                        )
-                    )
-                } catch (dbException: Throwable) {
-                    emit(Resource.Error(dbException, emptyList()))
-                }
+                emit(Resource.Error(e))
             }
         }
 
-    override suspend fun getLocationById(id: Int): Flow<Resource<LocationModel>> = flow {
+    override suspend fun getLocationByIdApi(id: Int): Flow<Resource<LocationModel>> = flow {
         emit(Resource.Loading)
         try {
             Log.d("DATA_LOAD", "Location id response: ${id}")
@@ -165,22 +124,83 @@ class LocationRepositoryImpl @Inject constructor(
                     (LocationMapper.responseToModel(response))
                 )
             )
+        } catch (ce: CancellationException) {
+            throw ce
         } catch (e: Exception) {
-            Log.d("DATA_LOAD", "Location by id error: ${e.message}")
-            try {
-                dao.getLocationById(id).collect { cachedEntity ->
-                    emit(
-                        Resource.Success(
-                            data = LocationMapper.entityToModel(cachedEntity),
-                            isLocal = true,
-                            onlineException = e
-                        )
-                    )
-                }
-
-            } catch (dbException: Throwable) {
-                emit(Resource.Error(dbException, null))
-            }
+            emit(Resource.Error(e))
         }
     }
+
+
+    override suspend fun getLocationsDB(
+        filterModel: LocationFilterModel
+    ): Flow<Resource<List<LocationModel>>> = flow {
+        emit(Resource.Loading)
+        //Try load from cache
+        try {
+            dao.getLocations(
+                name = filterModel.name,
+                type = filterModel.type,
+                dimension = filterModel.dimension,
+            ).map {
+                it.map { locationEntity ->
+                    LocationMapper.entityToModel(locationEntity)
+                }
+            }.collect { locations ->
+                emit(
+                    Resource.Success(
+                        data = locations
+                    )
+                )
+            }
+        } catch (ce: CancellationException) {
+            throw ce
+        } catch (dbException: Exception) {
+            Log.d("DATA_LOAD", "Location db error: ${dbException.message}")
+            emit(Resource.Error(exception = dbException))
+        }
+    }
+
+    override suspend fun getLocationsByIdsDB(ids: List<Int>): Flow<Resource<List<LocationModel>>> =
+        flow {
+            emit(Resource.Loading)
+            try {
+                val cachedLocations: MutableList<LocationModel> = mutableListOf()
+                ids.map {
+                    dao.getLocationById(it).collect { cachedEntity ->
+                        val cachedModel = LocationMapper.entityToModel(cachedEntity)
+                        cachedLocations.add(cachedModel.id, cachedModel)
+                    }
+                }
+                emit(
+                    Resource.Success(
+                        data = cachedLocations
+                    )
+                )
+            } catch (ce: CancellationException) {
+                throw ce
+            } catch (dbException: Exception) {
+                Log.d("DATA_LOAD", "Location by ids db error: ${dbException.message}")
+                emit(Resource.Error(exception = dbException))
+            }
+        }
+
+    override suspend fun getLocationByIdDB(id: Int): Flow<Resource<LocationModel>> = flow {
+        try {
+            dao.getLocationById(id).collect { cachedEntity ->
+                emit(
+                    Resource.Success(
+                        data = LocationMapper.entityToModel(cachedEntity)
+                    )
+                )
+            }
+
+        } catch (ce: CancellationException) {
+            throw ce
+        } catch (dbException: Exception) {
+            Log.d("DATA_LOAD", "Location by id db error: ${dbException.message}")
+            emit(Resource.Error(exception = dbException))
+        }
+    }
+
 }

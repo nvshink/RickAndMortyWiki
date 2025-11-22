@@ -5,23 +5,19 @@ import com.nvshink.domain.character.utils.CharacterSortFields
 import com.nvshink.domain.resource.SortTypes
 
 interface CharacterSmallListUiState {
-    val sortType: SortTypes
-    val sortFields: CharacterSortFields
+    val isLocal: Boolean
 
     data class LoadingState(
-        override val sortType: SortTypes = SortTypes.ASCENDING,
-        override val sortFields: CharacterSortFields = CharacterSortFields.NAME
+        override val isLocal: Boolean = false,
     ) : CharacterSmallListUiState
 
     data class SuccessState(
-        val characterList: List<CharacterModel> = emptyList(),
-        override val sortType: SortTypes = SortTypes.ASCENDING,
-        override val sortFields: CharacterSortFields = CharacterSortFields.NAME
+        val characterList: List<CharacterModel>,
+        override val isLocal: Boolean
     ) : CharacterSmallListUiState
 
     data class ErrorState(
-        val error: Throwable? = null,
-        override val sortType: SortTypes = SortTypes.ASCENDING,
-        override val sortFields: CharacterSortFields = CharacterSortFields.NAME
+        val error: Exception?,
+        override val isLocal: Boolean
     ) : CharacterSmallListUiState
 }

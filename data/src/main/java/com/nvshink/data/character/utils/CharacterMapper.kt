@@ -1,5 +1,6 @@
 package com.nvshink.data.character.utils
 
+import android.util.Log
 import com.nvshink.data.character.local.entity.CharacterEntity
 import com.nvshink.data.character.local.entity.CharacterLocationEntity
 import com.nvshink.data.character.network.response.CharacterLocationResponse
@@ -97,7 +98,7 @@ object CharacterMapper {
             url = response.origin.url
         ),
         location = CharacterLocationModel(
-            id = urlToId(response.origin.url),
+            id = urlToId(response.location.url),
             name = response.location.name,
             url = response.location.url
         ),

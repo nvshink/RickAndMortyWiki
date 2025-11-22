@@ -2,8 +2,8 @@ package com.nvshink.rickandmortywiki.ui.location.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.nvshink.data.generic.local.datasource.DataSourceManager
 import com.nvshink.domain.location.repository.LocationRepository
-import com.nvshink.domain.location.utils.LocationSortFields
 import com.nvshink.domain.resource.Resource
 import com.nvshink.domain.resource.SortTypes
 import com.nvshink.rickandmortywiki.ui.location.event.LocationSmallListEvent
@@ -23,17 +23,20 @@ import javax.inject.Inject
 
 @HiltViewModel
 class LocationSmallListViewModel @Inject constructor(
-    private val repository: LocationRepository
+    private val repository: LocationRepository,
+    private val dataSourceManager: DataSourceManager
 ) : ViewModel() {
-    private val _sortType = MutableStateFlow(SortTypes.ASCENDING)
-    private val _sortFields = MutableStateFlow(LocationSortFields.NAME)
+    private val _isLocal = dataSourceManager.isLocal
     private val _urls = MutableStateFlow<List<String>>(emptyList())
-
-
     @OptIn(ExperimentalCoroutinesApi::class)
-    private val _locations = _urls.flatMapLatest { urls ->
-        repository.getLocationsByIds(urls.map { it.substringAfterLast('=').toInt() })
-    }
+    private val _locations = combine(_urls, _isLocal) { urls, isLocal ->
+        val ids = urls.map { it.substringAfterLast('/').toInt() }
+        if(!isLocal) {
+            repository.getLocationsByIdsApi(ids = ids)
+        } else {
+            repository.getLocationsByIdsDB(ids = ids)
+        }
+    }.flatMapLatest { it }
         .stateIn(
             viewModelScope,
             SharingStarted.WhileSubscribed(5000),
@@ -46,42 +49,21 @@ class LocationSmallListViewModel @Inject constructor(
     val uiState = combine(
         _uiState,
         _locations,
-        _sortType,
-        _sortFields,
-    ) { uiState, locations, sortType, sortFields ->
+    ) { uiState, locations ->
         when (locations) {
             is Resource.Loading -> {
                 _uiState.update {
                     LoadingState(
-                        sortType = sortType,
-                        sortFields = sortFields
+                        isLocal = _isLocal.value
                     )
                 }
             }
 
             is Resource.Success -> {
-                var locationList = when (sortType) {
-                    SortTypes.ASCENDING ->
-                        when (sortFields) {
-                            LocationSortFields.NAME -> locations.data.sortedBy { it.name }
-                            LocationSortFields.CREATED -> locations.data.sortedBy { it.created }
-                            LocationSortFields.TYPE -> locations.data.sortedBy { it.type }
-                        }
-
-                    SortTypes.DESCENDING ->
-                        when (sortFields) {
-                            LocationSortFields.NAME -> locations.data.sortedByDescending { it.name }
-                            LocationSortFields.CREATED -> locations.data.sortedByDescending { it.created }
-                            LocationSortFields.TYPE -> locations.data.sortedByDescending { it.type }
-                        }
-
-                    SortTypes.NONE -> locations.data
-                }
                 _uiState.update {
                     SuccessState(
-                        locationList = locationList,
-                        sortType = sortType,
-                        sortFields = sortFields,
+                        locationList = locations.data,
+                        isLocal = _isLocal.value
                     )
                 }
             }
@@ -90,8 +72,7 @@ class LocationSmallListViewModel @Inject constructor(
                 _uiState.update {
                     ErrorState(
                         error = locations.exception,
-                        sortType = sortType,
-                        sortFields = sortFields,
+                        isLocal = _isLocal.value
                     )
                 }
             }
@@ -105,10 +86,6 @@ class LocationSmallListViewModel @Inject constructor(
 
     fun onEvent(event: LocationSmallListEvent) {
         when (event) {
-            is LocationSmallListEvent.SetSortFields -> _sortFields.update { event.sortFields }
-
-            is LocationSmallListEvent.SetSortType -> _sortType.update { event.sortType }
-
             is LocationSmallListEvent.SetUrls -> _urls.update { event.urls }
         }
     }

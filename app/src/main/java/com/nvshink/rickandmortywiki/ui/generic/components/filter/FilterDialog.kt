@@ -73,7 +73,6 @@ fun FilterDialog(
                     OutlinedButton(onClick = onReset) { Text(text = stringResource(R.string.button_reset)) }
                     Button(onClick = {
                         onConfirm()
-                        onDismissRequest()
                     }) { Text(text = stringResource(R.string.button_confirm)) }
                 }
             }

@@ -24,7 +24,7 @@ import com.nvshink.rickandmortywiki.ui.utils.Destinations
 
 @Composable
 fun PermanentNavigationDrawerLayout(
-    modifier: Modifier,
+    modifier: Modifier = Modifier,
     currentDestination: NavDestination?,
     onMenuItemSelected: (Any) -> Unit,
     content: @Composable (innerPadding: PaddingValues) -> Unit
@@ -34,7 +34,6 @@ fun PermanentNavigationDrawerLayout(
         Row(
             modifier = modifier
                 .fillMaxSize()
-                .background(MaterialTheme.colorScheme.primaryContainer)
         ) {
             PermanentNavigationDrawer(
                 modifier = Modifier.Companion.width(80.dp),
@@ -48,13 +47,6 @@ fun PermanentNavigationDrawerLayout(
                             icon = {
                                 Icon(imageVector = item.icon, contentDescription = item.name)
                             },
-                            colors = NavigationDrawerItemDefaults.colors(
-                                selectedIconColor = MaterialTheme.colorScheme.onSecondary,
-                                selectedTextColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                                selectedBadgeColor = MaterialTheme.colorScheme.secondary,
-                                unselectedTextColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                                unselectedIconColor = MaterialTheme.colorScheme.onPrimaryContainer
-                            ),
                             selected = currentDestination?.hierarchy?.any { it.hasRoute(item.route::class) } == true,
                             onClick = {
                                 if (item.isEnabled) onMenuItemSelected(item.route)
