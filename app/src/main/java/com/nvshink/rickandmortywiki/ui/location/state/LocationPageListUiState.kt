@@ -49,7 +49,7 @@ interface LocationPageListUiState {
     data class ErrorState(
         val error: Exception?,
         override val locationList: List<LocationModel>,
-        override val currentLocation: LocationModel? = null,
+        override val currentLocation: LocationModel?,
         override val filter: LocationFilterModel,
         override val isShowingFilter: Boolean,
         override val isAtTop: Boolean,

@@ -54,7 +54,7 @@ fun LocationItemScreen(
                 }
 
                 is LocationDetailUiState.ErrorState -> {
-                    ItemErrorScreen(errorMessage = detailUiState.errorMessage)
+                    ItemErrorScreen(errorMessage = detailUiState.error.message ?: "")
                 }
             }
         }

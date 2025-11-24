@@ -29,6 +29,7 @@ import kotlinx.coroutines.launch
 fun <T> ListOfItems(
     modifier: Modifier = Modifier,
     detailModifier: Modifier = Modifier,
+    listView: ListView = ListView.Column,
     listOfItems: List<T>,
     isLoading: Boolean,
     isRefreshing: Boolean,
@@ -67,8 +68,35 @@ fun <T> ListOfItems(
                             isRefreshing = isRefreshing,
                             onRefresh = onRefresh
                         ) {
-                            Column {
-                                InfinityLazyGrid(
+                            when(listView) {
+                                ListView.Column ->  InfinityLazyColumn(
+                                    items = listOfItems,
+                                    contentArrangement = listArrangement,
+                                    listItem = { item ->
+                                        ListItem(
+                                            onCardClick = {
+                                                coroutineScope.launch {
+                                                    scaffoldNavigator.navigateTo(
+                                                        pane = ListDetailPaneScaffoldRole.Detail,
+                                                        contentKey = listId(item)
+                                                    )
+                                                }
+                                            }
+                                        ) {
+                                            listItem(item)
+                                        }
+                                    },
+                                    listTopContent = listTopContent,
+                                    isLoading = isLoading,
+                                    emptyListIcon = emptyListIcon,
+                                    emptyListIconDescription = emptyListIconDescription,
+                                    emptyListTitle = emptyListTitle,
+                                    errorMessage = errorMessage,
+                                    onLoadMore = onLoadMore,
+                                    onRefresh = onRefresh,
+                                    onOffline = onOffline
+                                )
+                                ListView.Grid -> InfinityLazyGrid(
                                     items = listOfItems,
                                     cellsArrangement = listArrangement,
                                     listItem = { item ->

@@ -36,5 +36,9 @@
     <string name="character_episodes_title">Episodes</string>
     <string name="character_episodes_description_1">Participated in </string>
     <string name="character_episodes_description_2"> episodes</string>
+    <string name="location_dimension">Dimension</string>
+    <string name="location_type">Type</string>
+    <string name="location_residents">Residents</string>
+
 
 </resources>

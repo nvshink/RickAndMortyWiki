@@ -58,7 +58,7 @@ fun CharacterItemScreen(
                         .fillMaxSize()
                         .weight(1f)
                         .padding(128.dp),
-                    errorMessage = detailUiState.errorMessage,
+                    errorMessage = detailUiState.error.message ?: "",
                     onClick = onRefreshClick
                 )
             }

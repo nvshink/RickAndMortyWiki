@@ -2,6 +2,7 @@ package com.nvshink.rickandmortywiki.ui
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
@@ -89,7 +90,7 @@ fun RickAndMortyWikiApp(
                         modifier = Modifier
                             .clip(
                                 screensShape
-                            )
+                            ).padding(horizontal = 5.dp)
                             .background(MaterialTheme.colorScheme.surfaceContainer),
                         pageListUiState = characterListUiState,
                         onPageListEvent = characterPageListViewModel::onEvent,
@@ -104,29 +105,29 @@ fun RickAndMortyWikiApp(
                 }
                 composable<LocationsScreenRoute> {
                     val locationPageListViewModel: LocationPageListViewModel = hiltViewModel()
-                    val locationListUiState = locationPageListViewModel.uiStateSmallList.collectAsState().value
+                    val locationListUiState = locationPageListViewModel.uiState.collectAsState().value
                     LocationScreen(
                         modifier = Modifier
                             .clip(
                                 screensShape
-                            )
+                            ).padding(horizontal = 5.dp)
                             .background(
                                 MaterialTheme.colorScheme.surfaceContainer
                             ),
-                        exerciseListUiState = exerciseListUiState,
-                        onExerciseListEvent = exerciseListViewModel::onListEvent,
-                        exerciseScreenModifier = Modifier
+                        pageListUiState = locationListUiState,
+                        onPageListEvent = locationPageListViewModel::onEvent,
+                        detailModifier = Modifier
                             .clip(
                                 screensShape
                             )
-                            .background(MaterialTheme.colorScheme.surface),
-                        contentType = contentType,
-                        innerPadding = innerPadding
+                            .background(MaterialTheme.colorScheme.surface)
+                            .fillMaxSize(),
+                        contentType = contentType
                     )
                 }
                 composable<EpisodesScreenRoute> {
                     val episodeViewModel: EpisodeSmallListViewModel = hiltViewModel()
-                    val episodeUiState = episodeViewModel.collectAsState().value
+                    val episodeUiState = episodeViewModel.uiState.collectAsState().value
                     EpisodeScreen(
 //                        modifier = Modifier.padding(innerPadding),
 //                        contentType = contentType,

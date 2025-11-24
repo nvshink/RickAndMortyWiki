@@ -36,41 +36,29 @@ interface CharacterPageListUiState {
     ) : CharacterPageListUiState
 
     data class SuccessState(
-        override val characterList: List<CharacterModel> = emptyList(),
-        override val currentCharacter: CharacterModel? = null,
-        override val filter: CharacterFilterModel = CharacterFilterModel(
-            name = null,
-            status = null,
-            species = null,
-            type = null,
-            gender = null
-        ),
-        override val isShowingFilter: Boolean = false,
-        override val isAtTop: Boolean = true,
-        override val isRefreshing: Boolean = false,
-        override val isLocal: Boolean = false,
-        override val searchBarText: String = "",
-        override val searchBarFiltersText: String = "",
-        override val contentType: ContentType = ContentType.LIST_ONLY
+        override val characterList: List<CharacterModel>,
+        override val currentCharacter: CharacterModel?,
+        override val filter: CharacterFilterModel,
+        override val isShowingFilter: Boolean,
+        override val isAtTop: Boolean,
+        override val isRefreshing: Boolean,
+        override val isLocal: Boolean,
+        override val searchBarText: String,
+        override val searchBarFiltersText: String,
+        override val contentType: ContentType
     ) : CharacterPageListUiState
 
     data class ErrorState(
-        val error: Exception? = null,
-        override val characterList: List<CharacterModel> = emptyList(),
-        override val currentCharacter: CharacterModel? = null,
-        override val filter: CharacterFilterModel = CharacterFilterModel(
-            name = null,
-            status = null,
-            species = null,
-            type = null,
-            gender = null
-        ),
-        override val isShowingFilter: Boolean = false,
-        override val isAtTop: Boolean = true,
-        override val isRefreshing: Boolean = false,
-        override val isLocal: Boolean = false,
-        override val searchBarText: String = "",
-        override val searchBarFiltersText: String = "",
-        override val contentType: ContentType = ContentType.LIST_ONLY
+        val error: Exception?,
+        override val characterList: List<CharacterModel>,
+        override val currentCharacter: CharacterModel?,
+        override val filter: CharacterFilterModel,
+        override val isShowingFilter: Boolean,
+        override val isAtTop: Boolean,
+        override val isRefreshing: Boolean,
+        override val isLocal: Boolean,
+        override val searchBarText: String,
+        override val searchBarFiltersText: String,
+        override val contentType: ContentType
     ) : CharacterPageListUiState
 }

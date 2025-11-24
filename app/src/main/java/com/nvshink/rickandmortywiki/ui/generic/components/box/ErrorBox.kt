@@ -22,7 +22,7 @@ import com.nvshink.rickandmortywiki.R
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-fun ErrorBox (errorMessage: String, onRetryClick: () -> Unit, onOfflineClick: ((Boolean) -> Unit)?) {
+fun ErrorBox (errorMessage: String, onRetryClick: () -> Unit, onOfflineClick: ((Boolean) -> Unit)? = null) {
     Box(modifier = Modifier
         .fillMaxWidth()
         .padding(16.dp), contentAlignment = Alignment.Center) {

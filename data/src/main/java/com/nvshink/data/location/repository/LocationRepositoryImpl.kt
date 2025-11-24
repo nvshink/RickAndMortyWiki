@@ -115,9 +115,7 @@ class LocationRepositoryImpl @Inject constructor(
     override suspend fun getLocationByIdApi(id: Int): Flow<Resource<LocationModel>> = flow {
         emit(Resource.Loading)
         try {
-            Log.d("DATA_LOAD", "Location id response: ${id}")
             val response = service.getGetLocationById(id)
-            Log.d("DATA_LOAD", "Location by id response: ${response}")
             dao.upsertLocation(LocationMapper.responseToEntity(response))
             emit(
                 Resource.Success(

@@ -1,8 +1,6 @@
 package com.nvshink.rickandmortywiki.ui.character.state
 
 import com.nvshink.domain.character.model.CharacterModel
-import com.nvshink.domain.character.utils.CharacterSortFields
-import com.nvshink.domain.resource.SortTypes
 
 interface CharacterSmallListUiState {
     val isLocal: Boolean

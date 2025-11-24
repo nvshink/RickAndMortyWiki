@@ -9,13 +9,15 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import com.nvshink.rickandmortywiki.ui.generic.components.box.ErrorBox
 
 @Composable
-fun SmallListOfItems(
+fun <T> SmallListOfItems(
     isLoading: Boolean,
     errorMessage: String?,
-    listOfItems: List<Any>,
-    listItem: @Composable (Any) -> Unit
+    onRetryClick: () -> Unit,
+    listOfItems: List<T>,
+    listItem: @Composable (T) -> Unit
 ) {
     when {
         isLoading -> {
@@ -23,7 +25,7 @@ fun SmallListOfItems(
         }
 
         errorMessage != null -> {
-            Text(errorMessage)
+            ErrorBox(errorMessage = errorMessage, onRetryClick = onRetryClick)
         }
 
         else -> {

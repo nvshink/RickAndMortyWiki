@@ -18,6 +18,7 @@ import com.nvshink.rickandmortywiki.ui.generic.components.topbar.PageListTopBar
 import com.nvshink.rickandmortywiki.ui.character.event.CharacterPageListEvent
 import com.nvshink.rickandmortywiki.ui.character.state.CharacterPageListUiState
 import com.nvshink.rickandmortywiki.ui.generic.components.list.ListOfItems
+import com.nvshink.rickandmortywiki.ui.generic.components.list.ListView
 import com.nvshink.rickandmortywiki.ui.utils.CharacterItemScreenRoute
 import com.nvshink.rickandmortywiki.ui.utils.ContentType
 
@@ -31,9 +32,9 @@ fun CharactersScreen(
     contentType: ContentType,
 ) {
     ListOfItems(
-        modifier = modifier
-            .padding(horizontal = 5.dp),
+        modifier = modifier,
         detailModifier = detailModifier,
+        listView = ListView.Grid,
         listOfItems = pageListUiState.characterList,
         isLoading = pageListUiState::class == CharacterPageListUiState.LoadingState::class,
         isRefreshing = pageListUiState.isRefreshing,
