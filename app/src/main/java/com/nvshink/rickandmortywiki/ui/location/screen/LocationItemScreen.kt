@@ -41,7 +41,11 @@ fun LocationItemScreen(
         )
         when (detailUiState) {
             is LocationDetailUiState.LoadingState -> {
-                ItemLoadingScreen()
+                ItemLoadingScreen(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .weight(1f)
+                )
             }
 
             is LocationDetailUiState.ViewState -> {
@@ -64,8 +68,8 @@ fun LocationItemScreen(
                 ItemErrorScreen(
                     modifier = Modifier
                         .fillMaxSize()
-                        .weight(1f)
-                        .padding(128.dp), errorMessage = detailUiState.error.message ?: "",
+                        .weight(1f),
+                    errorMessage = detailUiState.error.message ?: "",
                     onClick = onRefreshClick
                 )
             }

@@ -32,4 +32,9 @@ interface CharacterDao {
     fun getCharactersById(
         id: Int
     ): Flow<CharacterEntity>
+
+    @Query("SELECT * FROM characters WHERE id IN (:ids)")
+    fun getCharactersByIds(
+        ids: List<Int>
+    ): Flow<List<CharacterEntity>>
 }

@@ -53,11 +53,15 @@ open class CharacterPageListViewModel @Inject constructor(
             gender = null
         )
     )
+    private val _isInitialise = MutableStateFlow(false)
     private val _searchQuery = MutableStateFlow("")
-    private val searchQuery = _searchQuery.asStateFlow().debounce(1000L)
-    private val filter = combine(_filter, searchQuery) { filter, searchQuery ->
-        _isRefresh.update { true }
-        filter.copy(name = searchQuery.ifBlank { null })
+    private val _searchQueryDebounce = _searchQuery.asStateFlow().debounce(1000L)
+    private val filter = combine(_filter, _searchQueryDebounce) { filter, searchQueryDebounce ->
+        if(_isInitialise.value) {
+            _isRefresh.update { true }
+            _pageInfoModel.update { PageInfoModel(next = null, prev = null) }
+        } else {_isInitialise.update { true }}
+        filter.copy(name = searchQueryDebounce.ifBlank { null })
     }.stateIn(
         viewModelScope,
         SharingStarted.WhileSubscribed(),
@@ -75,7 +79,6 @@ open class CharacterPageListViewModel @Inject constructor(
         _reloadCounts,
         _isLocal
     ) { filter, _, isLocal ->
-        Log.d("TEST", "Upload")
         if (!isLocal) {
             repository.getCharactersApi(
                 pageInfoModel = _pageInfoModel.value,
@@ -108,11 +111,13 @@ open class CharacterPageListViewModel @Inject constructor(
                         _oldCharacters.update { newCharacters.data }
                         newCharacters
                     } else {
-                         val updatedCharacters = (_oldCharacters.value + newCharacters.data).associateBy { it.id }.values.toList()
+                        val updatedCharacters =
+                            (_oldCharacters.value + newCharacters.data).associateBy { it.id }.values.toList()
                         _oldCharacters.update { updatedCharacters }
                         Resource.Success(updatedCharacters)
                     }
                 }
+
                 is Resource.Error -> {
                     _isRefresh.update { false }
                     newCharacters
@@ -153,6 +158,8 @@ open class CharacterPageListViewModel @Inject constructor(
             }
 
             is Resource.Success -> {
+                Log.d("TEST", "Success")
+
                 _uiState.update {
                     SuccessState(
                         characterList = characters.data,
@@ -255,20 +262,20 @@ open class CharacterPageListViewModel @Inject constructor(
                 }
 
                 CharacterPageListEvent.HideFilterDialog -> {
-                        _uiState.update {
-                            when (it) {
-                                is SuccessState -> it.copy(isShowingFilter = false)
-                                is LoadingState -> it.copy(isShowingFilter = false)
-                                is ErrorState -> it.copy(isShowingFilter = false)
-                                else -> it
-                            }
+                    _uiState.update {
+                        when (it) {
+                            is SuccessState -> it.copy(isShowingFilter = false)
+                            is LoadingState -> it.copy(isShowingFilter = false)
+                            is ErrorState -> it.copy(isShowingFilter = false)
+                            else -> it
                         }
+                    }
                 }
 
                 CharacterPageListEvent.RefreshList -> {
-                        _pageInfoModel.update { PageInfoModel(next = null, prev = null) }
-                        _isRefresh.update { true }
-                        reloadCharacters()
+                    _pageInfoModel.update { PageInfoModel(next = null, prev = null) }
+                    _isRefresh.update { true }
+                    reloadCharacters()
                 }
 
                 is CharacterPageListEvent.SetContentType -> _contentType.update { event.contentType }
@@ -289,7 +296,7 @@ open class CharacterPageListViewModel @Inject constructor(
         }
     }
 
-     private fun reloadCharacters() {
+    private fun reloadCharacters() {
         _reloadCounts.update { it + 1 }
     }
 }

@@ -48,11 +48,15 @@ open class LocationPageListViewModel @Inject constructor(
             dimension = null
         )
     )
+    private val _isInitialise = MutableStateFlow(false)
     private val _searchQuery = MutableStateFlow("")
-    private val searchQuery = _searchQuery.asStateFlow().debounce(1000L)
-    private val filter = combine(_filter, searchQuery) { filter, searchQuery ->
-        _isRefresh.update { true }
-        filter.copy(name = searchQuery.ifBlank { null })
+    private val _searchQueryDebounce = _searchQuery.asStateFlow().debounce(1000L)
+    private val filter = combine(_filter, _searchQueryDebounce) { filter, searchQueryDebounce ->
+        if(_isInitialise.value) {
+            _isRefresh.update { true }
+            _pageInfoModel.update { PageInfoModel(next = null, prev = null) }
+        } else {_isInitialise.update { true }}
+        filter.copy(name = searchQueryDebounce.ifBlank { null })
     }.stateIn(
         viewModelScope,
         SharingStarted.WhileSubscribed(),
@@ -64,13 +68,14 @@ open class LocationPageListViewModel @Inject constructor(
     )
 
     private val _newLocations = combine(
+        filter,
         _reloadCounts,
         _isLocal
-    ) { _, isLocal ->
+    ) { filter, _, isLocal ->
         if (!isLocal) {
             repository.getLocationsApi(
                 pageInfoModel = _pageInfoModel.value,
-                filterModel = filter.value
+                filterModel = filter
             ).flatMapLatest { response ->
                 flow {
                     _pageInfoModel.update { response.first }
@@ -78,7 +83,7 @@ open class LocationPageListViewModel @Inject constructor(
                 }
             }
         } else {
-            repository.getLocationsDB(filterModel = filter.value)
+            repository.getLocationsDB(filterModel = filter)
         }
     }.flatMapLatest { it }
         .stateIn(

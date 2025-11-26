@@ -2,6 +2,7 @@ package com.nvshink.data.episode.repository
 
 import android.util.Log
 import androidx.room.RoomRawQuery
+import com.nvshink.data.character.utils.CharacterMapper
 import com.nvshink.data.episode.local.dao.EpisodeDao
 import com.nvshink.data.episode.network.response.EpisodeResponse
 import com.nvshink.data.episode.network.service.EpisodeService
@@ -17,6 +18,7 @@ import jakarta.inject.Inject
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
+import kotlin.collections.map
 import kotlin.coroutines.cancellation.CancellationException
 
 class EpisodeRepositoryImpl @Inject constructor(
@@ -196,18 +198,15 @@ class EpisodeRepositoryImpl @Inject constructor(
         flow {
             emit(Resource.Loading)
             try {
-                val cachedEpisodes: MutableList<EpisodeModel> = mutableListOf()
-                ids.map {
-                    dao.getEpisodesById(it).collect { cachedEntity ->
-                        val cachedModel = EpisodeMapper.entityToModel(cachedEntity)
-                        cachedEpisodes.add(cachedModel.id, cachedModel)
-                    }
-                }
-                emit(
-                    Resource.Success(
-                        data = cachedEpisodes
+                dao.getEpisodesByIds(ids).map { episodes ->
+                    episodes.map { EpisodeMapper.entityToModel(entity = it) }
+                }.collect {
+                    emit(
+                        Resource.Success(
+                            data = it
+                        )
                     )
-                )
+                }
             } catch (ce: CancellationException) {
                 throw ce
             } catch (dbException: Exception) {
@@ -249,7 +248,7 @@ class EpisodeRepositoryImpl @Inject constructor(
         }
 
         val query =
-            "SELECT * FROM characters ${if (selectionArgs.isNotEmpty()) "WHERE" else ""} ${
+            "SELECT * FROM episodes ${if (selectionArgs.isNotEmpty()) "WHERE" else ""} ${
                 selectionArgs.joinToString(
                     " AND "
                 )

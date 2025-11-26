@@ -37,7 +37,11 @@ fun EpisodeItemScreen(
         )
         when (detailUiState) {
             is EpisodeDetailUiState.LoadingState -> {
-                ItemLoadingScreen()
+                ItemLoadingScreen(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .weight(1f)
+                )
             }
 
             is EpisodeDetailUiState.ViewState -> {
@@ -60,8 +64,8 @@ fun EpisodeItemScreen(
                 ItemErrorScreen(
                     modifier = Modifier
                         .fillMaxSize()
-                        .weight(1f)
-                        .padding(128.dp), errorMessage = detailUiState.error.message ?: "",
+                        .weight(1f),
+                    errorMessage = detailUiState.error.message ?: "",
                     onClick = onRefreshClick
                 )
             }

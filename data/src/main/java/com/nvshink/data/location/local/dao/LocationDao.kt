@@ -2,7 +2,11 @@ package com.nvshink.data.location.local.dao
 
 import androidx.room.Dao
 import androidx.room.Query
+import androidx.room.RawQuery
+import androidx.room.RoomRawQuery
 import androidx.room.Upsert
+import com.nvshink.data.character.local.entity.CharacterEntity
+import com.nvshink.data.episode.local.entity.EpisodeEntity
 import com.nvshink.data.location.local.entity.LocationEntity
 import kotlinx.coroutines.flow.Flow
 
@@ -17,24 +21,19 @@ interface LocationDao {
 
     /**
      * Return list of locations to the entered conditions
-     * @param sortBy Specifies which field the list will be sorted by
-     * @param name The value for filtering by the `name` field. If `null`, it is not filtered.
-     * @param type The value for filtering by the `type` field. If `null`, it is not filtered.
-     * @param dimension The value for filtering by the `dimension` field. If `null`, it is not filtered.
      */
-    @Query(
-        "SELECT * FROM locations WHERE (:name IS NULL OR name = :name) " +
-                "AND (:type IS NULL OR type = :type) " +
-                "AND (:dimension IS NULL OR dimension = :dimension) "
-    )
+    @RawQuery(observedEntities = [LocationEntity::class])
     fun getLocations(
-        name: String? = null,
-        type: String? = null,
-        dimension: String? = null
+        query: RoomRawQuery
     ): Flow<List<LocationEntity>>
 
     @Query("SELECT * FROM locations WHERE id = :id")
     fun getLocationById(
         id: Int
     ): Flow<LocationEntity>
+
+    @Query("SELECT * FROM locations WHERE id IN (:ids)")
+    fun getLocationsByIds(
+        ids: List<Int>
+    ): Flow<List<LocationEntity>>
 }

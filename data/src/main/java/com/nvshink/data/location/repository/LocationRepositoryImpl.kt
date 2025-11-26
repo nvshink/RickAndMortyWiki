@@ -1,6 +1,8 @@
 package com.nvshink.data.location.repository
 
 import android.util.Log
+import androidx.room.RoomRawQuery
+import com.nvshink.data.character.utils.CharacterMapper
 import com.nvshink.data.generic.network.exception.ResourceNotFoundException
 import com.nvshink.data.generic.network.response.PageResponse
 import com.nvshink.data.location.local.dao.LocationDao
@@ -162,9 +164,11 @@ class LocationRepositoryImpl @Inject constructor(
         //Try load from cache
         try {
             dao.getLocations(
-                name = filterModel.name,
-                type = filterModel.type,
-                dimension = filterModel.dimension,
+                query = sqlLocationQueryBuilder(
+                    name = filterModel.name,
+                    type = filterModel.type,
+                    dimension = filterModel.dimension
+                )
             ).map {
                 it.map { locationEntity ->
                     LocationMapper.entityToModel(locationEntity)
@@ -188,18 +192,15 @@ class LocationRepositoryImpl @Inject constructor(
         flow {
             emit(Resource.Loading)
             try {
-                val cachedLocations: MutableList<LocationModel> = mutableListOf()
-                ids.map {
-                    dao.getLocationById(it).collect { cachedEntity ->
-                        val cachedModel = LocationMapper.entityToModel(cachedEntity)
-                        cachedLocations.add(cachedModel.id, cachedModel)
-                    }
-                }
-                emit(
-                    Resource.Success(
-                        data = cachedLocations
+                dao.getLocationsByIds(ids).map { locations ->
+                    locations.map { LocationMapper.entityToModel(entity = it) }
+                }.collect {
+                    emit(
+                        Resource.Success(
+                            data = it
+                        )
                     )
-                )
+                }
             } catch (ce: CancellationException) {
                 throw ce
             } catch (dbException: Exception) {
@@ -225,5 +226,31 @@ class LocationRepositoryImpl @Inject constructor(
             emit(Resource.Error(exception = dbException))
         }
     }
+    private fun sqlLocationQueryBuilder(
+        name: String?,
+        type: String?,
+        dimension: String?
+    ): RoomRawQuery {
+        val selectionArgs = mutableListOf<String>()
 
+        if (name != null) {
+            selectionArgs.add("name LIKE '%$name%'")
+        }
+
+        if (type != null) {
+            selectionArgs.add("status LIKE '$type'")
+        }
+
+        if (dimension != null) {
+            selectionArgs.add("dimension LIKE '$dimension'")
+        }
+
+        val query =
+            "SELECT * FROM locations ${if (selectionArgs.isNotEmpty()) "WHERE" else ""} ${
+                selectionArgs.joinToString(
+                    " AND "
+                )
+            }"
+        return RoomRawQuery(query)
+    }
 }

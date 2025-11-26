@@ -21,6 +21,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.nvshink.rickandmortywiki.ui.generic.components.navigation.DynamicNavigation
+import com.nvshink.rickandmortywiki.ui.generic.components.navigation.ScreenTransitions
 import com.nvshink.rickandmortywiki.ui.generic.screens.EmptyItemScreen
 import kotlinx.coroutines.launch
 
@@ -139,8 +140,8 @@ fun <T> ListOfItems(
             }
         },
         detailPane = {
-            val id = scaffoldNavigator.currentDestination?.contentKey
             AnimatedPane {
+                val id = scaffoldNavigator.currentDestination?.contentKey
                 if (id != null) {
                     key(id) {
                         DynamicNavigation(
@@ -164,5 +165,4 @@ fun <T> ListOfItems(
             }
         }
     )
-
 }

@@ -189,7 +189,7 @@ class CharacterRepositoryImpl @Inject constructor(
             }
         } catch (ce: CancellationException) {
             throw ce
-        }  catch (dbException: Exception) {
+        } catch (dbException: Exception) {
             Log.d("DATA_LOAD", "Characters db error: ${dbException.message}")
             emit(Resource.Error(exception = dbException))
         }
@@ -199,18 +199,15 @@ class CharacterRepositoryImpl @Inject constructor(
         flow {
             emit(Resource.Loading)
             try {
-                val cachedCharacters: MutableList<CharacterModel> = mutableListOf()
-                ids.map {
-                    dao.getCharactersById(it).collect { cachedEntity ->
-                        val cachedModel = CharacterMapper.entityToModel(cachedEntity)
-                        cachedCharacters.add(cachedModel.id, cachedModel)
-                    }
-                }
-                emit(
-                    Resource.Success(
-                        data = cachedCharacters
+                dao.getCharactersByIds(ids).map { characters ->
+                    characters.map { CharacterMapper.entityToModel(entity = it) }
+                }.collect {
+                    emit(
+                        Resource.Success(
+                            data = it
+                        )
                     )
-                )
+                }
             } catch (ce: CancellationException) {
                 throw ce
             } catch (dbException: Exception) {
@@ -267,7 +264,11 @@ class CharacterRepositoryImpl @Inject constructor(
         }
 
         val query =
-            "SELECT * FROM characters ${if (selectionArgs.isNotEmpty()) "WHERE" else ""} ${selectionArgs.joinToString(" AND ")}"
+            "SELECT * FROM characters ${if (selectionArgs.isNotEmpty()) "WHERE" else ""} ${
+                selectionArgs.joinToString(
+                    " AND "
+                )
+            }"
         return RoomRawQuery(query)
     }
 

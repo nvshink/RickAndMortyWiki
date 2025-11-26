@@ -50,11 +50,17 @@ open class EpisodePageListViewModel @Inject constructor(
             episode = null
         )
     )
+    private val _isInitialise = MutableStateFlow(false)
     private val _searchQuery = MutableStateFlow("")
-    private val searchQuery = _searchQuery.asStateFlow().debounce(1000L)
-    private val filter = combine(_filter, searchQuery) { filter, searchQuery ->
-        _isRefresh.update { true }
-        filter.copy(name = searchQuery.ifBlank { null })
+    private val _searchQueryDebounce = _searchQuery.asStateFlow().debounce(1000L)
+    private val filter = combine(_filter, _searchQueryDebounce) { filter, searchQueryDebounce ->
+        if (_isInitialise.value) {
+            _isRefresh.update { true }
+            _pageInfoModel.update { PageInfoModel(next = null, prev = null) }
+        } else {
+            _isInitialise.update { true }
+        }
+        filter.copy(name = searchQueryDebounce.ifBlank { null })
     }.stateIn(
         viewModelScope,
         SharingStarted.WhileSubscribed(),
@@ -65,13 +71,14 @@ open class EpisodePageListViewModel @Inject constructor(
     )
 
     private val _newEpisodes = combine(
+        filter,
         _reloadCounts,
         _isLocal
-    ) { _, isLocal ->
+    ) { filter, _, isLocal ->
         if (!isLocal) {
             repository.getEpisodesApi(
                 pageInfoModel = _pageInfoModel.value,
-                filterModel = filter.value
+                filterModel = filter
             ).flatMapLatest { response ->
                 flow {
                     _pageInfoModel.update { response.first }
@@ -79,7 +86,7 @@ open class EpisodePageListViewModel @Inject constructor(
                 }
             }
         } else {
-            repository.getEpisodesDB(filterModel = filter.value)
+            repository.getEpisodesDB(filterModel = filter)
         }
     }.flatMapLatest { it }
         .stateIn(
@@ -100,7 +107,8 @@ open class EpisodePageListViewModel @Inject constructor(
                         _oldEpisodes.update { newEpisodes.data }
                         newEpisodes
                     } else {
-                        val updatedEpisodes = (_oldEpisodes.value + newEpisodes.data).associateBy { it.id }.values.toList()
+                        val updatedEpisodes =
+                            (_oldEpisodes.value + newEpisodes.data).associateBy { it.id }.values.toList()
                         _oldEpisodes.update { updatedEpisodes }
                         Resource.Success(updatedEpisodes)
                     }
@@ -115,7 +123,7 @@ open class EpisodePageListViewModel @Inject constructor(
         SharingStarted.WhileSubscribed(5000),
         Resource.Loading
     )
-    
+
     private val _uiState =
         MutableStateFlow<EpisodePageListUiState>(LoadingState())
 

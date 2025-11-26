@@ -53,9 +53,6 @@ fun CharacterItemScreen(
                 val onEpisodeSmallListEvent = episodeSmallListViewModel::onEvent
                 onEpisodeSmallListEvent(EpisodeSmallListEvent.SetUrls(detailUiState.character.episode))
                 CharacterItemViewScreen(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .weight(1f),
                     character = detailUiState.character,
                     episodesUiState = episodeSmallListUiState,
                     onSmallListRefresh = { onEpisodeSmallListEvent(EpisodeSmallListEvent.Refresh)},
@@ -69,8 +66,7 @@ fun CharacterItemScreen(
                 ItemErrorScreen(
                     modifier = Modifier
                         .fillMaxSize()
-                        .weight(1f)
-                        .padding(128.dp),
+                        .weight(1f),
                     errorMessage = detailUiState.error.message ?: "",
                     onClick = onRefreshClick
                 )

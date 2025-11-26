@@ -34,17 +34,17 @@ fun ItemErrorScreen(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Icon(
-            modifier = Modifier.size(48.dp),
+            modifier = Modifier.size(32.dp),
             imageVector = Icons.Filled.Error,
             contentDescription = stringResource(R.string.icon_error_description)
         )
-        Spacer(modifier = Modifier.size(36.dp))
+        Spacer(modifier = Modifier.size(16.dp))
         Text(
             text = errorMessage,
             style = MaterialTheme.typography.titleMedium,
             textAlign = TextAlign.Center
         )
-        Spacer(modifier = Modifier.size(36.dp))
+        Spacer(modifier = Modifier.size(16.dp))
         if(onClick != null) {
             Button(onClick = onClick) { Text(text = stringResource(R.string.button_refresh)) }
         }

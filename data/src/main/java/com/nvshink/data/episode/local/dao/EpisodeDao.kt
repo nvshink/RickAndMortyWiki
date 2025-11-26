@@ -6,6 +6,7 @@ import androidx.room.RawQuery
 import androidx.room.RoomRawQuery
 import androidx.room.Upsert
 import com.nvshink.data.episode.local.entity.EpisodeEntity
+import com.nvshink.data.location.local.entity.LocationEntity
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -28,4 +29,9 @@ interface EpisodeDao {
     fun getEpisodesById(
         id: Int
     ): Flow<EpisodeEntity>
+
+    @Query("SELECT * FROM episodes WHERE id IN (:ids)")
+    fun getEpisodesByIds(
+        ids: List<Int>
+    ): Flow<List<EpisodeEntity>>
 }

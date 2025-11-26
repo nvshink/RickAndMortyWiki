@@ -82,9 +82,12 @@ fun CharacterItemViewScreen(
             textAlign = TextAlign.Center,
             modifier = Modifier.fillMaxWidth()
         )
-        Column (verticalArrangement = Arrangement.spacedBy(16.dp)) {
+        Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
             Row {
-                Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                Column(
+                    modifier = Modifier.weight(1f),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
                     //Status
                     TextDetailProperty(
                         label = stringResource(R.string.character_status_filter_title),
@@ -108,7 +111,10 @@ fun CharacterItemViewScreen(
                         content = character.species
                     )
                 }
-                Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                Column(
+                    modifier = Modifier.weight(1f),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
                     //Type
                     TextDetailProperty(
                         label = stringResource(R.string.character_type_filter_title),
@@ -133,7 +139,10 @@ fun CharacterItemViewScreen(
                     )
                 }
             }
-            Row(horizontalArrangement = Arrangement.spacedBy(16.dp), modifier = Modifier.fillMaxWidth()) {
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(16.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
                 //Location
                 if (character.location.id != null) {
                     TextButtonDetailProperty(
@@ -169,37 +178,39 @@ fun CharacterItemViewScreen(
                     )
                 }
             }
-            Column {
-                Text(
-                    stringResource(R.string.character_episodes_title),
-                    style = MaterialTheme.typography.titleMedium,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.fillMaxWidth()
-                )
-                //Episodes
-                SmallListOfItems(
-                    isLoading = episodesUiState is EpisodeSmallListUiState.LoadingState,
-                    errorMessage = if (episodesUiState is EpisodeSmallListUiState.ErrorState) episodesUiState.error?.message
-                        ?: "" else null,
-                    onRetryClick = onSmallListRefresh,
-                    listOfItems = if (episodesUiState is EpisodeSmallListUiState.SuccessState) episodesUiState.episodeList else emptyList(),
-                    listItem = { episodeModel ->
-                        EpisodeSmallListItem(
-                            name = episodeModel.name,
-                            episode = episodeModel.episode,
-                            onClick = {
-                                onNavigation(EpisodeItemScreenRoute(episodeModel.id))
-                            })
-                    }
-                )
-            }
+            //Episodes
+            SmallListOfItems(
+                title = stringResource(R.string.character_episodes_title),
+                isLoading = episodesUiState is EpisodeSmallListUiState.LoadingState,
+                errorMessage = if (episodesUiState is EpisodeSmallListUiState.ErrorState) episodesUiState.error?.message
+                    ?: "" else null,
+                onRetryClick = onSmallListRefresh,
+                listOfItems = if (episodesUiState is EpisodeSmallListUiState.SuccessState) episodesUiState.episodeList else emptyList(),
+                listItem = { episodeModel ->
+                    EpisodeSmallListItem(
+                        name = episodeModel.name,
+                        episode = episodeModel.episode,
+                        onClick = {
+                            onNavigation(EpisodeItemScreenRoute(episodeModel.id))
+                        })
+                }
+            )
         }
     }
 }
 
 @Composable
-fun TextDetailProperty(modifier: Modifier = Modifier, label: String, leadingIcon: @Composable () -> Unit = {}, content: String) {
-    Row(modifier = modifier, verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+fun TextDetailProperty(
+    modifier: Modifier = Modifier,
+    label: String,
+    leadingIcon: @Composable () -> Unit = {},
+    content: String
+) {
+    Row(
+        modifier = modifier,
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
         Box { leadingIcon() }
         Column {
             Text(text = label, style = MaterialTheme.typography.labelSmall)
@@ -213,6 +224,16 @@ fun TextDetailProperty(modifier: Modifier = Modifier, label: String, leadingIcon
 }
 
 @Composable
-fun TextButtonDetailProperty(modifier: Modifier = Modifier, label: String, leadingIcon: @Composable () -> Unit = {}, content: String, onClick: () -> Unit) {
-    Button(onClick = onClick, modifier = modifier, shape = MaterialTheme.shapes.small) { TextDetailProperty(label = label, leadingIcon = leadingIcon, content = content) }
+fun TextButtonDetailProperty(
+    modifier: Modifier = Modifier,
+    label: String,
+    leadingIcon: @Composable () -> Unit = {},
+    content: String,
+    onClick: () -> Unit
+) {
+    Button(
+        onClick = onClick,
+        modifier = modifier,
+        shape = MaterialTheme.shapes.small
+    ) { TextDetailProperty(label = label, leadingIcon = leadingIcon, content = content) }
 }
