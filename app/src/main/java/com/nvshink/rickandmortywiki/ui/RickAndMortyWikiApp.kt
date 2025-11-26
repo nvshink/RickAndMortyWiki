@@ -24,6 +24,7 @@ import androidx.navigation.compose.rememberNavController
 import com.nvshink.rickandmortywiki.ui.character.screen.CharactersScreen
 import com.nvshink.rickandmortywiki.ui.character.viewmodel.CharacterPageListViewModel
 import com.nvshink.rickandmortywiki.ui.episode.screen.EpisodeScreen
+import com.nvshink.rickandmortywiki.ui.episode.viewmodel.EpisodePageListViewModel
 import com.nvshink.rickandmortywiki.ui.episode.viewmodel.EpisodeSmallListViewModel
 import com.nvshink.rickandmortywiki.ui.generic.components.navigation.layouts.NavigationBarLayout
 import com.nvshink.rickandmortywiki.ui.generic.components.navigation.layouts.NavigationRailLayout
@@ -126,12 +127,25 @@ fun RickAndMortyWikiApp(
                     )
                 }
                 composable<EpisodesScreenRoute> {
-                    val episodeViewModel: EpisodeSmallListViewModel = hiltViewModel()
+                    val episodeViewModel: EpisodePageListViewModel = hiltViewModel()
                     val episodeUiState = episodeViewModel.uiState.collectAsState().value
                     EpisodeScreen(
-//                        modifier = Modifier.padding(innerPadding),
-//                        contentType = contentType,
-//                        onTrainingPlanItemScreenBackPressed = {}
+                        modifier = Modifier
+                            .clip(
+                                screensShape
+                            ).padding(horizontal = 5.dp)
+                            .background(
+                                MaterialTheme.colorScheme.surfaceContainer
+                            ),
+                        pageListUiState = episodeUiState,
+                        onPageListEvent = episodeViewModel::onEvent,
+                        detailModifier = Modifier
+                            .clip(
+                                screensShape
+                            )
+                            .background(MaterialTheme.colorScheme.surface)
+                            .fillMaxSize(),
+                        contentType = contentType
                     )
                 }
 

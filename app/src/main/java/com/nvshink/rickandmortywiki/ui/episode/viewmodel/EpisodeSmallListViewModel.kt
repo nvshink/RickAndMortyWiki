@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.nvshink.data.generic.local.datasource.DataSourceManager
 import com.nvshink.domain.episode.repository.EpisodeRepository
 import com.nvshink.domain.resource.Resource
+import com.nvshink.rickandmortywiki.ui.character.event.CharacterSmallListEvent
 import com.nvshink.rickandmortywiki.ui.episode.event.EpisodeSmallListEvent
 import com.nvshink.rickandmortywiki.ui.episode.state.EpisodeSmallListUiState
 import com.nvshink.rickandmortywiki.ui.episode.state.EpisodeSmallListUiState.ErrorState
@@ -26,9 +27,11 @@ class EpisodeSmallListViewModel @Inject constructor(
     private val dataSourceManager: DataSourceManager
 ) : ViewModel() {
     private val _isLocal = dataSourceManager.isLocal
+    private val _reloadCounts = MutableStateFlow(0)
+
     private val _urls = MutableStateFlow<List<String>>(emptyList())
     @OptIn(ExperimentalCoroutinesApi::class)
-    private val _episodes = combine(_urls, _isLocal) { urls, isLocal ->
+    private val _episodes = combine(_urls, _isLocal, _reloadCounts) { urls, isLocal, _ ->
         val ids = urls.map { it.substringAfterLast('/').toInt() }
         if(!isLocal) {
             repository.getEpisodesByIdsApi(ids = ids)
@@ -86,6 +89,7 @@ class EpisodeSmallListViewModel @Inject constructor(
     fun onEvent(event: EpisodeSmallListEvent) {
         when (event) {
             is EpisodeSmallListEvent.SetUrls -> _urls.update { event.urls }
+            is EpisodeSmallListEvent.Refresh -> _reloadCounts.update { it + 1 }
         }
     }
 }

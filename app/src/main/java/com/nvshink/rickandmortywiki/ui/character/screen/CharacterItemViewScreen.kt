@@ -39,6 +39,13 @@ import com.nvshink.domain.character.model.CharacterLocationModel
 import com.nvshink.domain.character.model.CharacterModel
 import com.nvshink.domain.character.model.CharacterStatus
 import com.nvshink.rickandmortywiki.R
+import com.nvshink.rickandmortywiki.ui.character.state.CharacterSmallListUiState
+import com.nvshink.rickandmortywiki.ui.episode.state.EpisodeSmallListUiState
+import com.nvshink.rickandmortywiki.ui.generic.components.list.SmallListOfItems
+import com.nvshink.rickandmortywiki.ui.location.screen.CharacterSmallListItem
+import com.nvshink.rickandmortywiki.ui.location.screen.EpisodeSmallListItem
+import com.nvshink.rickandmortywiki.ui.utils.CharacterItemScreenRoute
+import com.nvshink.rickandmortywiki.ui.utils.EpisodeItemScreenRoute
 import com.nvshink.rickandmortywiki.ui.utils.LocationItemScreenRoute
 import com.nvshink.rickandmortywiki.ui.utils.getIcon
 import com.nvshink.rickandmortywiki.ui.utils.getName
@@ -48,6 +55,8 @@ import java.time.ZonedDateTime
 fun CharacterItemViewScreen(
     modifier: Modifier = Modifier,
     character: CharacterModel,
+    episodesUiState: EpisodeSmallListUiState,
+    onSmallListRefresh: () -> Unit = {},
     onNavigation: (Any) -> Unit
 ) {
     val context = LocalContext.current
@@ -167,13 +176,21 @@ fun CharacterItemViewScreen(
                     textAlign = TextAlign.Center,
                     modifier = Modifier.fillMaxWidth()
                 )
-                Text(
-                    stringResource(R.string.character_episodes_description_1) + character.episode.size.toString() + stringResource(
-                        R.string.character_episodes_description_2
-                    ),
-                    style = MaterialTheme.typography.bodyMedium,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.fillMaxWidth()
+                //Episodes
+                SmallListOfItems(
+                    isLoading = episodesUiState is EpisodeSmallListUiState.LoadingState,
+                    errorMessage = if (episodesUiState is EpisodeSmallListUiState.ErrorState) episodesUiState.error?.message
+                        ?: "" else null,
+                    onRetryClick = onSmallListRefresh,
+                    listOfItems = if (episodesUiState is EpisodeSmallListUiState.SuccessState) episodesUiState.episodeList else emptyList(),
+                    listItem = { episodeModel ->
+                        EpisodeSmallListItem(
+                            name = episodeModel.name,
+                            episode = episodeModel.episode,
+                            onClick = {
+                                onNavigation(EpisodeItemScreenRoute(episodeModel.id))
+                            })
+                    }
                 )
             }
         }
@@ -198,31 +215,4 @@ fun TextDetailProperty(modifier: Modifier = Modifier, label: String, leadingIcon
 @Composable
 fun TextButtonDetailProperty(modifier: Modifier = Modifier, label: String, leadingIcon: @Composable () -> Unit = {}, content: String, onClick: () -> Unit) {
     Button(onClick = onClick, modifier = modifier, shape = MaterialTheme.shapes.small) { TextDetailProperty(label = label, leadingIcon = leadingIcon, content = content) }
-}
-
-@Composable
-@Preview
-fun CharacterItemViewScreenPreview() {
-    CharacterItemViewScreen(character = CharacterModel(
-        id = 0,
-        name = "Test name",
-        status = CharacterStatus.UNKNOWN,
-        species = "Human",
-        type = "Type",
-        gender = CharacterGender.UNKNOWN,
-        origin = CharacterLocationModel(
-            id = 0,
-            name = "",
-            url = "https://rickandmortyapi.com/api/location/1"
-        ),
-        location = CharacterLocationModel(
-            id = 0,
-            name = "",
-            url = "https://rickandmortyapi.com/api/location/1"
-        ),
-        image = "https://rickandmortyapi.com/api/character/avatar/5.jpeg",
-        episode = emptyList(),
-        url = "",
-        created = ZonedDateTime.now()
-    )) { }
 }

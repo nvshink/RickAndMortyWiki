@@ -1,30 +1,35 @@
 package com.nvshink.data.location.network.service
 
-import com.nvshink.data.generic.network.response.PageInfoResponse
 import com.nvshink.data.generic.network.response.PageResponse
 import com.nvshink.data.location.network.response.LocationResponse
-import retrofit2.http.GET
-import retrofit2.http.Path
-import retrofit2.http.Query
-import retrofit2.http.Url
+import io.ktor.client.HttpClient
+import io.ktor.client.call.body
+import io.ktor.client.request.get
+import io.ktor.client.request.parameter
+import javax.inject.Inject
 
-interface LocationService{
-    @GET("location")
+class LocationService @Inject constructor(
+    private val client: HttpClient
+){
+    private val basePath = "location/"
     suspend fun getGetListOfLocationsByParams(
-        @Query("name") name: String,
-        @Query("type") type: String,
-        @Query("dimension") dimension: String,
-    ) : PageResponse<LocationResponse>
-    @GET
-    suspend fun getGetListOfLocationsByUrl(
-        @Url url: String
-    ) : PageResponse<LocationResponse>
-    @GET("location/{path}")
-    suspend fun getGetLocationsByPath(
-        @Path("path") path: String
-    ) : List<LocationResponse>
-    @GET("location/{id}")
-    suspend fun getGetLocationById(
-        @Path("id") id: Int
-    ) : LocationResponse
+        name: String,
+        type: String,
+        dimension: String,
+    ): PageResponse<LocationResponse> {
+        return client.get(urlString = basePath) {
+            parameter("name", name)
+            parameter("type", type)
+            parameter("dimension", dimension)
+        }.body<PageResponse<LocationResponse>>()
+    }
+    suspend fun getGetListOfLocationsByUrl(url: String): PageResponse<LocationResponse> {
+        return client.get(urlString = url).body<PageResponse<LocationResponse>>()
+    }
+    suspend fun getGetListOfLocationsByPath(path: String): List<LocationResponse> {
+        return client.get(urlString = "$basePath$path").body<List<LocationResponse>>()
+    }
+    suspend fun getGetLocationById(id: Int): LocationResponse {
+        return client.get(urlString = "$basePath$id").body<LocationResponse>()
+    }
 }

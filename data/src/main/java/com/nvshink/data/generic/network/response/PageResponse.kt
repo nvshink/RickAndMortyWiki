@@ -7,6 +7,6 @@ import kotlinx.serialization.Serializable
 data class PageResponse<T>(
     @SerialName("info")
     val info: PageInfoResponse,
-    @SerialName("result")
+    @SerialName("results")
     val results: List<T>
 )

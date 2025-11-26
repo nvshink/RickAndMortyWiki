@@ -4,13 +4,15 @@ import com.nvshink.data.episode.local.entity.EpisodeEntity
 import com.nvshink.data.episode.network.response.EpisodeResponse
 import com.nvshink.domain.episode.model.EpisodeModel
 import kotlinx.serialization.json.Json
+import java.time.LocalDate
 import java.time.ZonedDateTime
+import java.time.format.DateTimeFormatter
 
 object EpisodeMapper {
     fun entityToModel(entity: EpisodeEntity): EpisodeModel = EpisodeModel(
         id = entity.id,
         name = entity.name,
-        airDate = ZonedDateTime.parse(entity.airDate),
+        airDate = LocalDate.parse(entity.airDate, DateTimeFormatter.ofPattern("MMMM d, yyyy")),
         episode = entity.episode,
         characters = entity.characters,
         url = entity.url,
@@ -29,7 +31,7 @@ object EpisodeMapper {
     fun responseToModel(response: EpisodeResponse): EpisodeModel = EpisodeModel(
         id = response.id,
         name = response.name,
-        airDate = ZonedDateTime.parse(response.airDate),
+        airDate = LocalDate.parse(response.airDate, DateTimeFormatter.ofPattern("MMMM d, yyyy")),
         episode = response.episode,
         characters = response.characters,
         url = response.url,

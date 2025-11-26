@@ -1,5 +1,7 @@
 package com.nvshink.domain.episode.model
 
+import java.time.LocalDate
+import java.time.LocalDateTime
 import java.time.ZonedDateTime
 
 /**
@@ -14,7 +16,7 @@ import java.time.ZonedDateTime
 data class EpisodeModel(
     val id:	Int,
     val name: String,
-    val airDate: ZonedDateTime,
+    val airDate: LocalDate,
     val episode: String,
     val characters: List<String>,
     val url: String,

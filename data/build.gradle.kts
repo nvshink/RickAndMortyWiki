@@ -51,8 +51,6 @@ dependencies {
 
     //Json
     implementation(libs.kotlinx.serialization.json)
-    implementation(libs.converter.gson)
-    implementation(libs.gson)
 
     // Hilt
     implementation(libs.hilt.android)
@@ -64,9 +62,12 @@ dependencies {
     implementation(libs.androidx.room.runtime)
     ksp(libs.androidx.room.compiler)
 
-    // retrofit
-    implementation(libs.retrofit2)
-    implementation(libs.retrofit2.kotlinx.serialization.converter)
+    // Ktor
+    implementation(libs.ktor.client.core)
+    implementation(libs.ktor.client.okhttp)
+    implementation(libs.ktor.serialization.kotlinx.json)
+    implementation(libs.ktor.client.content.negotiation)
+
 
     // coil
     implementation(libs.coil)

@@ -2,6 +2,8 @@ package com.nvshink.data.episode.local.dao
 
 import androidx.room.Dao
 import androidx.room.Query
+import androidx.room.RawQuery
+import androidx.room.RoomRawQuery
 import androidx.room.Upsert
 import com.nvshink.data.episode.local.entity.EpisodeEntity
 import kotlinx.coroutines.flow.Flow
@@ -16,16 +18,10 @@ interface EpisodeDao {
 
     /**
      * Return list of episodes to the entered conditions
-     * @param name The value for filtering by the `name` field. If `null`, it is not filtered.
-     * @param episode The value for filtering by the `episode` field. If `null`, it is not filtered.
      */
-    @Query(
-        "SELECT * FROM episodes WHERE (:name IS NULL OR name = :name) " +
-                "AND (:episode IS NULL OR episode = :episode)"
-    )
+    @RawQuery(observedEntities = [EpisodeEntity::class])
     fun getEpisodes(
-        name: String? = null,
-        episode: String? = null,
+        query: RoomRawQuery
     ): Flow<List<EpisodeEntity>>
 
     @Query("SELECT * FROM episodes WHERE id = :id")

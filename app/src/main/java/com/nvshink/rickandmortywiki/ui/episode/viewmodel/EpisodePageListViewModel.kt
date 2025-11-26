@@ -6,6 +6,7 @@ import androidx.compose.animation.SharedTransitionScope
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nvshink.data.generic.local.datasource.DataSourceManager
+import com.nvshink.domain.episode.model.EpisodeModel
 import com.nvshink.domain.episode.model.EpisodeFilterModel
 import com.nvshink.domain.episode.repository.EpisodeRepository
 import com.nvshink.domain.resource.PageInfoModel
@@ -42,13 +43,6 @@ open class EpisodePageListViewModel @Inject constructor(
     private val _isRefresh = MutableStateFlow(false)
     private val _contentType = MutableStateFlow(ContentType.LIST_ONLY)
     private val _pageInfoModel = MutableStateFlow(PageInfoModel(next = null, prev = null))
-    private val pageInfoModel = combine(_pageInfoModel, _isRefresh){ pageInfoModel, isRefresh ->
-        if (isRefresh) {
-            PageInfoModel(next = null, prev = null)
-        } else {
-            pageInfoModel
-        }
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(), PageInfoModel(next = null, prev = null))
     private val _isLocal = dataSourceManager.isLocal
     private val _filter = MutableStateFlow(
         EpisodeFilterModel(
@@ -70,15 +64,14 @@ open class EpisodePageListViewModel @Inject constructor(
         )
     )
 
-    private val _episodes = combine(
-        filter,
+    private val _newEpisodes = combine(
         _reloadCounts,
         _isLocal
-    ) { filter, _, isLocal ->
+    ) { _, isLocal ->
         if (!isLocal) {
             repository.getEpisodesApi(
-                pageInfoModel = pageInfoModel.value,
-                filterModel = filter
+                pageInfoModel = _pageInfoModel.value,
+                filterModel = filter.value
             ).flatMapLatest { response ->
                 flow {
                     _pageInfoModel.update { response.first }
@@ -86,7 +79,7 @@ open class EpisodePageListViewModel @Inject constructor(
                 }
             }
         } else {
-            repository.getEpisodesDB(filterModel = filter)
+            repository.getEpisodesDB(filterModel = filter.value)
         }
     }.flatMapLatest { it }
         .stateIn(
@@ -95,6 +88,34 @@ open class EpisodePageListViewModel @Inject constructor(
             Resource.Loading
         )
 
+    private val _oldEpisodes = MutableStateFlow<List<EpisodeModel>>(emptyList())
+
+    private val _episodes = _newEpisodes.flatMapLatest { newEpisodes ->
+        flow {
+            val episodes = when (newEpisodes) {
+                Resource.Loading -> newEpisodes
+                is Resource.Success -> {
+                    if (_isRefresh.value) {
+                        _isRefresh.update { false }
+                        _oldEpisodes.update { newEpisodes.data }
+                        newEpisodes
+                    } else {
+                        val updatedEpisodes = (_oldEpisodes.value + newEpisodes.data).associateBy { it.id }.values.toList()
+                        _oldEpisodes.update { updatedEpisodes }
+                        Resource.Success(updatedEpisodes)
+                    }
+                }
+
+                is Resource.Error -> newEpisodes
+            }
+            emit(episodes)
+        }
+    }.stateIn(
+        viewModelScope,
+        SharingStarted.WhileSubscribed(5000),
+        Resource.Loading
+    )
+    
     private val _uiState =
         MutableStateFlow<EpisodePageListUiState>(LoadingState())
 
@@ -122,12 +143,11 @@ open class EpisodePageListViewModel @Inject constructor(
             }
 
             is Resource.Success -> {
-                val newEpisodeList = episodes.data
                 var episodeList = if (uiState.isRefreshing) {
                     _isRefresh.update { false }
-                    newEpisodeList
+                    episodes.data
                 } else {
-                    (uiState.episodeList + newEpisodeList).associateBy { it.id }.values.toList()
+                    (uiState.episodeList + episodes.data).associateBy { it.id }.values.toList()
                 }
                 _uiState.update {
                     SuccessState(
@@ -231,6 +251,7 @@ open class EpisodePageListViewModel @Inject constructor(
             }
 
             EpisodePageListEvent.RefreshList -> {
+                _pageInfoModel.update { PageInfoModel(next = null, prev = null) }
                 _isRefresh.update { true }
                 reloadEpisodes()
             }

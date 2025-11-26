@@ -1,4 +1,4 @@
-package com.nvshink.rickandmortywiki.ui.character.screen
+package com.nvshink.rickandmortywiki.ui.episode.screen
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -13,22 +13,20 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import com.nvshink.rickandmortywiki.ui.character.event.CharacterSmallListEvent
-import com.nvshink.rickandmortywiki.ui.character.state.CharacterDetailUiState
 import com.nvshink.rickandmortywiki.ui.character.viewmodel.CharacterSmallListViewModel
-import com.nvshink.rickandmortywiki.ui.episode.event.EpisodeSmallListEvent
-import com.nvshink.rickandmortywiki.ui.episode.viewmodel.EpisodeSmallListViewModel
 import com.nvshink.rickandmortywiki.ui.generic.components.topbar.ItemScreenTopBar
 import com.nvshink.rickandmortywiki.ui.generic.screens.ItemErrorScreen
 import com.nvshink.rickandmortywiki.ui.generic.screens.ItemLoadingScreen
+import com.nvshink.rickandmortywiki.ui.episode.state.EpisodeDetailUiState
 import com.nvshink.rickandmortywiki.ui.utils.ContentType
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CharacterItemScreen(
+fun EpisodeItemScreen(
     modifier: Modifier = Modifier,
     contentType: ContentType,
+    detailUiState: EpisodeDetailUiState,
     navController: NavHostController,
-    detailUiState: CharacterDetailUiState,
     onRefreshClick: () -> Unit,
     onBackClick: () -> Unit
 ) {
@@ -38,40 +36,32 @@ fun CharacterItemScreen(
             onBackButtonClicked = onBackClick
         )
         when (detailUiState) {
-            is CharacterDetailUiState.LoadingState -> {
-                ItemLoadingScreen(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .weight(1f)
-                )
+            is EpisodeDetailUiState.LoadingState -> {
+                ItemLoadingScreen()
             }
 
-            is CharacterDetailUiState.ViewState -> {
-                val episodeSmallListViewModel: EpisodeSmallListViewModel = hiltViewModel()
-                val episodeSmallListUiState =
-                    episodeSmallListViewModel.uiState.collectAsState().value
-                val onEpisodeSmallListEvent = episodeSmallListViewModel::onEvent
-                onEpisodeSmallListEvent(EpisodeSmallListEvent.SetUrls(detailUiState.character.episode))
-                CharacterItemViewScreen(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .weight(1f),
-                    character = detailUiState.character,
-                    episodesUiState = episodeSmallListUiState,
-                    onSmallListRefresh = { onEpisodeSmallListEvent(EpisodeSmallListEvent.Refresh)},
+            is EpisodeDetailUiState.ViewState -> {
+                val characterSmallListViewModel: CharacterSmallListViewModel = hiltViewModel()
+                val characterSmallListUiState =
+                    characterSmallListViewModel.uiState.collectAsState().value
+                val onCharacterSmallListEvent = characterSmallListViewModel::onEvent
+                onCharacterSmallListEvent(CharacterSmallListEvent.SetUrls(detailUiState.episode.characters))
+                EpisodeItemViewScreen(
+                    episode = detailUiState.episode,
+                    charactersUiState = characterSmallListUiState,
+                    onSmallListRefresh = {onCharacterSmallListEvent(CharacterSmallListEvent.Refresh)},
                     onNavigation = { destination: Any ->
                         navController.navigate(destination)
                     }
                 )
             }
 
-            is CharacterDetailUiState.ErrorState -> {
+            is EpisodeDetailUiState.ErrorState -> {
                 ItemErrorScreen(
                     modifier = Modifier
                         .fillMaxSize()
                         .weight(1f)
-                        .padding(128.dp),
-                    errorMessage = detailUiState.error.message ?: "",
+                        .padding(128.dp), errorMessage = detailUiState.error.message ?: "",
                     onClick = onRefreshClick
                 )
             }

@@ -2,10 +2,15 @@ package com.nvshink.rickandmortywiki.ui.location.screen
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import com.nvshink.rickandmortywiki.ui.character.event.CharacterSmallListEvent
@@ -26,36 +31,43 @@ fun LocationItemScreen(
     contentType: ContentType,
     detailUiState: LocationDetailUiState,
     navController: NavHostController,
-    onBackPressed: () -> Unit
+    onRefreshClick: () -> Unit,
+    onBackClick: () -> Unit
 ) {
-    Box(modifier = modifier){
-        Column {
-            ItemScreenTopBar(
-                contentType = contentType,
-                onBackButtonClicked = onBackPressed
-            )
-            when (detailUiState) {
-                is LocationDetailUiState.LoadingState -> {
-                    ItemLoadingScreen()
-                }
+    Column(modifier = modifier.verticalScroll(rememberScrollState())) {
+        ItemScreenTopBar(
+            contentType = contentType,
+            onBackButtonClicked = onBackClick
+        )
+        when (detailUiState) {
+            is LocationDetailUiState.LoadingState -> {
+                ItemLoadingScreen()
+            }
 
-                is LocationDetailUiState.ViewState -> {
-                    val characterSmallListViewModel: CharacterSmallListViewModel = hiltViewModel()
-                    val characterSmallListUiState = characterSmallListViewModel.uiState.collectAsState().value
-                    val onCharacterSmallListEvent = characterSmallListViewModel::onEvent
-                    onCharacterSmallListEvent(CharacterSmallListEvent.SetUrls(detailUiState.location.residents))
-                    LocationItemViewScreen(
-                        location = detailUiState.location,
-                        residentsUiState = characterSmallListUiState,
-                        onNavigation = { destination: Any ->
-                            navController.navigate(destination)
-                        }
-                    )
-                }
+            is LocationDetailUiState.ViewState -> {
+                val characterSmallListViewModel: CharacterSmallListViewModel = hiltViewModel()
+                val characterSmallListUiState =
+                    characterSmallListViewModel.uiState.collectAsState().value
+                val onCharacterSmallListEvent = characterSmallListViewModel::onEvent
+                onCharacterSmallListEvent(CharacterSmallListEvent.SetUrls(detailUiState.location.residents))
+                LocationItemViewScreen(
+                    location = detailUiState.location,
+                    residentsUiState = characterSmallListUiState,
+                    onSmallListRefresh = {onCharacterSmallListEvent(CharacterSmallListEvent.Refresh)},
+                    onNavigation = { destination: Any ->
+                        navController.navigate(destination)
+                    }
+                )
+            }
 
-                is LocationDetailUiState.ErrorState -> {
-                    ItemErrorScreen(errorMessage = detailUiState.error.message ?: "")
-                }
+            is LocationDetailUiState.ErrorState -> {
+                ItemErrorScreen(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .weight(1f)
+                        .padding(128.dp), errorMessage = detailUiState.error.message ?: "",
+                    onClick = onRefreshClick
+                )
             }
         }
     }

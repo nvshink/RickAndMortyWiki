@@ -1,11 +1,12 @@
 package com.nvshink.data.episode.repository
 
 import android.util.Log
+import androidx.room.RoomRawQuery
 import com.nvshink.data.episode.local.dao.EpisodeDao
 import com.nvshink.data.episode.network.response.EpisodeResponse
 import com.nvshink.data.episode.network.service.EpisodeService
 import com.nvshink.data.episode.utils.EpisodeMapper
-import com.nvshink.data.generic.local.datasource.DataSourceManager
+import com.nvshink.data.generic.network.exception.ResourceNotFoundException
 import com.nvshink.data.generic.network.response.PageResponse
 import com.nvshink.domain.episode.model.EpisodeFilterModel
 import com.nvshink.domain.episode.model.EpisodeModel
@@ -62,9 +63,13 @@ class EpisodeRepositoryImpl @Inject constructor(
                 next = responseInfo.next,
                 prev = responseInfo.prev
             )
+            Log.d("TEST", responseResult.toString())
+
 
             //White result in local DB
             responseResult.forEach {
+                Log.d("TEST", EpisodeMapper.responseToEntity(it).toString())
+
                 dao.upsertEpisode(EpisodeMapper.responseToEntity(it))
             }
 
@@ -80,9 +85,19 @@ class EpisodeRepositoryImpl @Inject constructor(
             )
         } catch (ce: CancellationException) {
             throw ce
+        } catch (resourceNotFound: ResourceNotFoundException) {
+            Log.d("DATA_LOAD", "Episodes error: ${resourceNotFound.message}")
+            emit(
+                Pair(
+                    first = pageInfoModel,
+                    second = Resource.Success(
+                        emptyList()
+                    )
+                )
+            )
         } catch (e: Exception) {
             Log.d("DATA_LOAD", "Episodes error: ${e.message}")
-            emit(Pair(pageInfoModel,Resource.Error(exception = e)))
+            emit(Pair(pageInfoModel, Resource.Error(exception = e)))
         }
     }
 
@@ -96,7 +111,7 @@ class EpisodeRepositoryImpl @Inject constructor(
             try {
                 var path = ""
                 ids.forEach { id -> path += "$id," }
-                val response = service.getGetEpisodesByPath(path.dropLast(1))
+                val response = service.getGetListOfEpisodesByPath(path)
                 response.forEach {
                     dao.upsertEpisode(EpisodeMapper.responseToEntity(it))
                 }
@@ -105,6 +120,13 @@ class EpisodeRepositoryImpl @Inject constructor(
                 }))
             } catch (ce: CancellationException) {
                 throw ce
+            } catch (resourceNotFound: ResourceNotFoundException) {
+                Log.d("DATA_LOAD", "Episodes error: ${resourceNotFound.message}")
+                emit(
+                    Resource.Success(
+                        emptyList()
+                    )
+                )
             } catch (e: Exception) {
                 Log.d("DATA_LOAD", "Episode by ids error: ${e.message}")
                 emit(Resource.Error(exception = e))
@@ -127,6 +149,13 @@ class EpisodeRepositoryImpl @Inject constructor(
             )
         } catch (ce: CancellationException) {
             throw ce
+        } catch (resourceNotFound: ResourceNotFoundException) {
+            Log.d("DATA_LOAD", "Episodes error: ${resourceNotFound.message}")
+            emit(
+                Resource.Error(
+                    exception = resourceNotFound
+                )
+            )
         } catch (e: Exception) {
             Log.d("DATA_LOAD", "Episode by id error: ${e.message}")
             emit(Resource.Error(exception = e))
@@ -140,8 +169,10 @@ class EpisodeRepositoryImpl @Inject constructor(
         //Try load from cache
         try {
             dao.getEpisodes(
-                name = filterModel.name,
-                episode = filterModel.episode,
+                sqlEpisodeQueryBuilder(
+                    name = filterModel.name,
+                    episode = filterModel.episode
+                )
             ).map {
                 it.map { episodeEntity ->
                     EpisodeMapper.entityToModel(episodeEntity)
@@ -203,4 +234,26 @@ class EpisodeRepositoryImpl @Inject constructor(
         }
     }
 
+    private fun sqlEpisodeQueryBuilder(
+        name: String?,
+        episode: String?
+    ): RoomRawQuery {
+        val selectionArgs = mutableListOf<String>()
+
+        if (name != null) {
+            selectionArgs.add("name LIKE '%$name%'")
+        }
+
+        if (episode != null) {
+            selectionArgs.add("status LIKE '$episode'")
+        }
+
+        val query =
+            "SELECT * FROM characters ${if (selectionArgs.isNotEmpty()) "WHERE" else ""} ${
+                selectionArgs.joinToString(
+                    " AND "
+                )
+            }"
+        return RoomRawQuery(query)
+    }
 }

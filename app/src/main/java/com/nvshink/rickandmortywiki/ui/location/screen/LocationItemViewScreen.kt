@@ -3,6 +3,7 @@ package com.nvshink.rickandmortywiki.ui.location.screen
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -24,6 +25,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.nvshink.domain.character.model.CharacterModel
@@ -39,6 +41,7 @@ import com.nvshink.rickandmortywiki.ui.utils.CharactersScreenRoute
 fun LocationItemViewScreen(
     location: LocationModel,
     residentsUiState: CharacterSmallListUiState,
+    onSmallListRefresh: () -> Unit = {},
     onNavigation: (Any) -> Unit
 ) {
     Column(modifier = Modifier.fillMaxSize()) {
@@ -77,9 +80,7 @@ fun LocationItemViewScreen(
             isLoading = residentsUiState is CharacterSmallListUiState.LoadingState,
             errorMessage = if (residentsUiState is CharacterSmallListUiState.ErrorState) residentsUiState.error?.message
                 ?: "" else null,
-            onRetryClick = {
-                    residentsUiState
-            },
+            onRetryClick = onSmallListRefresh,
             listOfItems = if (residentsUiState is CharacterSmallListUiState.SuccessState) residentsUiState.characterList else emptyList(),
             listItem = { characterModel ->
                 CharacterSmallListItem(
@@ -102,4 +103,19 @@ fun CharacterSmallListItem(
             onClick()
         }
     })
+}
+
+@Composable
+fun EpisodeSmallListItem(
+    name: String,
+    episode: String,
+    onClick: (() -> Unit)? = null
+) {
+    Row(modifier = Modifier.clickable{
+        if (onClick != null) {
+            onClick()
+        }
+    }) {
+        Text(text = "$episode, $name", overflow = TextOverflow.Ellipsis, maxLines = 1)
+    }
 }

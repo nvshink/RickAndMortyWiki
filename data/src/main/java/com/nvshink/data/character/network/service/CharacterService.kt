@@ -2,31 +2,38 @@ package com.nvshink.data.character.network.service
 
 import com.nvshink.data.character.network.response.CharacterResponse
 import com.nvshink.data.generic.network.response.PageResponse
-import com.nvshink.data.location.network.response.LocationResponse
-import retrofit2.http.GET
-import retrofit2.http.Path
-import retrofit2.http.Query
-import retrofit2.http.Url
+import io.ktor.client.HttpClient
+import io.ktor.client.call.body
+import io.ktor.client.request.get
+import io.ktor.client.request.parameter
+import javax.inject.Inject
 
-interface CharacterService {
-    @GET("character")
+class CharacterService @Inject constructor(
+    private val client: HttpClient
+){
+    private val basePath = "character/"
     suspend fun getGetListOfCharactersByParams(
-        @Query("name") name: String,
-        @Query("status") status: String,
-        @Query("species") species: String,
-        @Query("type") type: String,
-        @Query("gender") gender: String,
-    ) : PageResponse<CharacterResponse>
-    @GET
-    suspend fun getGetListOfCharactersByUrl(
-        @Url url: String
-    ) : PageResponse<CharacterResponse>
-    @GET("character/{path}")
-    suspend fun getGetCharactersByPath(
-        @Path("path") path: String
-    ) : List<CharacterResponse>
-    @GET("character/{id}")
-    suspend fun getGetCharacterById(
-        @Path("id") id: Int
-    ) : CharacterResponse
+        name: String,
+        status: String,
+        species: String,
+        type: String,
+        gender: String
+    ): PageResponse<CharacterResponse> {
+        return client.get(urlString = basePath) {
+                parameter("name", name)
+                parameter("status", status)
+                parameter("species", species)
+                parameter("type", type)
+                parameter("gender", gender)
+            }.body<PageResponse<CharacterResponse>>()
+    }
+    suspend fun getGetListOfCharactersByUrl(url: String): PageResponse<CharacterResponse> {
+        return client.get(urlString = url).body<PageResponse<CharacterResponse>>()
+    }
+    suspend fun getGetListOfCharactersByPath(path: String): List<CharacterResponse> {
+        return client.get(urlString = "$basePath$path").body<List<CharacterResponse>>()
+    }
+    suspend fun getGetCharacterById(id: Int): CharacterResponse {
+        return client.get(urlString = "$basePath$id").body<CharacterResponse>()
+    }
 }

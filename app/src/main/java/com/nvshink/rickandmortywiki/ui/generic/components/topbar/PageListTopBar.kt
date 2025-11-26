@@ -34,6 +34,7 @@ import com.nvshink.rickandmortywiki.ui.character.event.CharacterPageListEvent
 @Composable
 fun PageListTopBar(
     query: String,
+    placeholder: String,
     onQueryChange: (String) -> Unit,
     onSearch: (String) -> Unit,
     onFilterButton: (() -> Unit)? = null,
@@ -57,7 +58,7 @@ fun PageListTopBar(
                         onSearch = onSearch,
                         expanded = false,
                         onExpandedChange = {},
-                        placeholder = { Text(stringResource(R.string.searchbar_placeholder_character)) })
+                        placeholder = { Text(text = placeholder) })
                 },
                 expanded = false,
                 onExpandedChange = {},

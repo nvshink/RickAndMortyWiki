@@ -1,6 +1,7 @@
 package com.nvshink.data.location.repository
 
 import android.util.Log
+import com.nvshink.data.generic.network.exception.ResourceNotFoundException
 import com.nvshink.data.generic.network.response.PageResponse
 import com.nvshink.data.location.local.dao.LocationDao
 import com.nvshink.data.location.network.response.LocationResponse
@@ -59,7 +60,6 @@ class LocationRepositoryImpl @Inject constructor(
             val responseInfo = response.info
             val responseResult = response.results
 
-
             val newPageInfoModel = pageInfoModel.copy(
                 next = responseInfo.next,
                 prev = responseInfo.prev
@@ -77,6 +77,16 @@ class LocationRepositoryImpl @Inject constructor(
                     second = Resource.Success(responseResult.map {
                         LocationMapper.responseToModel(it)
                     }
+                    )
+                )
+            )
+        } catch (resourceNotFound: ResourceNotFoundException) {
+            Log.d("DATA_LOAD", "Locations error: ${resourceNotFound.message}")
+            emit(
+                Pair(
+                    first = pageInfoModel,
+                    second = Resource.Success(
+                        emptyList()
                     )
                 )
             )
@@ -98,7 +108,7 @@ class LocationRepositoryImpl @Inject constructor(
             try {
                 var path = ""
                 ids.forEach { id -> path += "$id," }
-                val response = service.getGetLocationsByPath(path.dropLast(1))
+                val response = service.getGetListOfLocationsByPath(path)
                 response.forEach {
                     dao.upsertLocation(LocationMapper.responseToEntity(it))
                 }
@@ -107,6 +117,13 @@ class LocationRepositoryImpl @Inject constructor(
                 }))
             } catch (ce: CancellationException) {
                 throw ce
+            } catch (resourceNotFound: ResourceNotFoundException) {
+                Log.d("DATA_LOAD", "Locations error: ${resourceNotFound.message}")
+                emit(
+                    Resource.Success(
+                        emptyList()
+                    )
+                )
             } catch (e: Exception) {
                 emit(Resource.Error(e))
             }
@@ -124,7 +141,15 @@ class LocationRepositoryImpl @Inject constructor(
             )
         } catch (ce: CancellationException) {
             throw ce
+        } catch (resourceNotFound: ResourceNotFoundException) {
+            Log.d("DATA_LOAD", "Location by id error: ${resourceNotFound.message}")
+            emit(
+                Resource.Error(
+                    exception = resourceNotFound
+                )
+            )
         } catch (e: Exception) {
+            Log.d("DATA_LOAD", "Location by id error: ${e.message}")
             emit(Resource.Error(e))
         }
     }

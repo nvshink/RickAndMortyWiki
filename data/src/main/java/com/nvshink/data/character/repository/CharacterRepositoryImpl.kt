@@ -2,12 +2,11 @@ package com.nvshink.data.character.repository
 
 import android.util.Log
 import androidx.room.RoomRawQuery
-import androidx.sqlite.db.SupportSQLiteQuery
-import androidx.sqlite.db.SupportSQLiteQueryBuilder
 import com.nvshink.data.character.local.dao.CharacterDao
 import com.nvshink.data.character.network.response.CharacterResponse
 import com.nvshink.data.character.network.service.CharacterService
 import com.nvshink.data.character.utils.CharacterMapper
+import com.nvshink.data.generic.network.exception.ResourceNotFoundException
 import com.nvshink.data.generic.network.response.PageResponse
 import com.nvshink.domain.character.model.CharacterFilterModel
 import com.nvshink.domain.character.model.CharacterModel
@@ -86,6 +85,16 @@ class CharacterRepositoryImpl @Inject constructor(
             )
         } catch (ce: CancellationException) {
             throw ce
+        } catch (resourceNotFound: ResourceNotFoundException) {
+            Log.d("DATA_LOAD", "Characters error: ${resourceNotFound.message}")
+            emit(
+                Pair(
+                    first = pageInfoModel,
+                    second = Resource.Success(
+                        emptyList()
+                    )
+                )
+            )
         } catch (e: Exception) {
             Log.d("DATA_LOAD", "Characters error: ${e.message}")
             emit(Pair(pageInfoModel, Resource.Error(exception = e)))
@@ -102,7 +111,7 @@ class CharacterRepositoryImpl @Inject constructor(
             try {
                 var path = ""
                 ids.forEach { id -> path += "$id," }
-                val response = service.getGetCharactersByPath(path.dropLast(1))
+                val response = service.getGetListOfCharactersByPath(path)
                 response.forEach {
                     dao.upsertCharacter(CharacterMapper.responseToEntity(it))
                 }
@@ -111,6 +120,13 @@ class CharacterRepositoryImpl @Inject constructor(
                 }))
             } catch (ce: CancellationException) {
                 throw ce
+            } catch (resourceNotFound: ResourceNotFoundException) {
+                Log.d("DATA_LOAD", "Characters by ids error: ${resourceNotFound.message}")
+                emit(
+                    Resource.Success(
+                        emptyList()
+                    )
+                )
             } catch (e: Exception) {
                 Log.d("DATA_LOAD", "Character by ids error: ${e.message}")
                 emit(Resource.Error(exception = e))
@@ -133,6 +149,13 @@ class CharacterRepositoryImpl @Inject constructor(
             )
         } catch (ce: CancellationException) {
             throw ce
+        } catch (resourceNotFound: ResourceNotFoundException) {
+            Log.d("DATA_LOAD", "Character by id error: ${resourceNotFound.message}")
+            emit(
+                Resource.Error(
+                    exception = resourceNotFound
+                )
+            )
         } catch (e: Exception) {
             Log.d("DATA_LOAD", "Character by id error: ${e.message}")
             emit(Resource.Error(exception = e))
@@ -146,7 +169,7 @@ class CharacterRepositoryImpl @Inject constructor(
         //Try load from cache
         try {
             dao.getCharacters(
-                query = sqlQueryBuilder(
+                query = sqlCharacterQueryBuilder(
                     name = filterModel.name,
                     status = filterModel.status?.name,
                     species = filterModel.species,
@@ -166,7 +189,7 @@ class CharacterRepositoryImpl @Inject constructor(
             }
         } catch (ce: CancellationException) {
             throw ce
-        } catch (dbException: Exception) {
+        }  catch (dbException: Exception) {
             Log.d("DATA_LOAD", "Characters db error: ${dbException.message}")
             emit(Resource.Error(exception = dbException))
         }
@@ -214,7 +237,7 @@ class CharacterRepositoryImpl @Inject constructor(
         }
     }
 
-    private fun sqlQueryBuilder(
+    private fun sqlCharacterQueryBuilder(
         name: String?,
         status: String?,
         species: String?,

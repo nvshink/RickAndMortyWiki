@@ -6,6 +6,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nvshink.data.generic.local.datasource.DataSourceManager
 import com.nvshink.domain.location.model.LocationFilterModel
+import com.nvshink.domain.location.model.LocationModel
 import com.nvshink.domain.location.repository.LocationRepository
 import com.nvshink.domain.resource.PageInfoModel
 import com.nvshink.domain.resource.Resource
@@ -35,18 +36,11 @@ open class LocationPageListViewModel @Inject constructor(
     private val dataSourceManager: DataSourceManager
 ) : ViewModel() {
 
+    private val _contentType = MutableStateFlow(ContentType.LIST_ONLY)
+    private val _isLocal = dataSourceManager.isLocal
     private val _reloadCounts = MutableStateFlow(0)
     private val _isRefresh = MutableStateFlow(false)
-    private val _contentType = MutableStateFlow(ContentType.LIST_ONLY)
     private val _pageInfoModel = MutableStateFlow(PageInfoModel(next = null, prev = null))
-    private val pageInfoModel = combine(_pageInfoModel, _isRefresh){ pageInfoModel, isRefresh ->
-        if (isRefresh) {
-            PageInfoModel(next = null, prev = null)
-        } else {
-            pageInfoModel
-        }
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(), PageInfoModel(next = null, prev = null))
-    private val _isLocal = dataSourceManager.isLocal
     private val _filter = MutableStateFlow(
         LocationFilterModel(
             name = null,
@@ -69,15 +63,14 @@ open class LocationPageListViewModel @Inject constructor(
         )
     )
 
-    private val _locations = combine(
-        filter,
+    private val _newLocations = combine(
         _reloadCounts,
         _isLocal
-    ) { filter, _, isLocal ->
+    ) { _, isLocal ->
         if (!isLocal) {
             repository.getLocationsApi(
-                pageInfoModel = pageInfoModel.value,
-                filterModel = filter
+                pageInfoModel = _pageInfoModel.value,
+                filterModel = filter.value
             ).flatMapLatest { response ->
                 flow {
                     _pageInfoModel.update { response.first }
@@ -85,7 +78,7 @@ open class LocationPageListViewModel @Inject constructor(
                 }
             }
         } else {
-            repository.getLocationsDB(filterModel = filter)
+            repository.getLocationsDB(filterModel = filter.value)
         }
     }.flatMapLatest { it }
         .stateIn(
@@ -93,6 +86,34 @@ open class LocationPageListViewModel @Inject constructor(
             SharingStarted.WhileSubscribed(5000),
             Resource.Loading
         )
+
+    private val _oldLocations = MutableStateFlow<List<LocationModel>>(emptyList())
+
+    private val _locations = _newLocations.flatMapLatest { newLocations ->
+        flow {
+            val locations = when (newLocations) {
+                Resource.Loading -> newLocations
+                is Resource.Success -> {
+                    if (_isRefresh.value) {
+                        _isRefresh.update { false }
+                        _oldLocations.update { newLocations.data }
+                        newLocations
+                    } else {
+                        val updatedLocations = (_oldLocations.value + newLocations.data).associateBy { it.id }.values.toList()
+                        _oldLocations.update { updatedLocations }
+                        Resource.Success(updatedLocations)
+                    }
+                }
+
+                is Resource.Error -> newLocations
+            }
+            emit(locations)
+        }
+    }.stateIn(
+        viewModelScope,
+        SharingStarted.WhileSubscribed(5000),
+        Resource.Loading
+    )
 
     private val _uiState =
         MutableStateFlow<LocationPageListUiState>(LoadingState())
@@ -121,12 +142,11 @@ open class LocationPageListViewModel @Inject constructor(
             }
 
             is Resource.Success -> {
-                val newLocationList = locations.data
                 var locationList = if (uiState.isRefreshing) {
                     _isRefresh.update { false }
-                    newLocationList
+                    locations.data
                 } else {
-                    (uiState.locationList + newLocationList).associateBy { it.id }.values.toList()
+                    (uiState.locationList + locations.data).associateBy { it.id }.values.toList()
                 }
                 _uiState.update {
                     SuccessState(
@@ -232,6 +252,7 @@ open class LocationPageListViewModel @Inject constructor(
 
             LocationPageListEvent.RefreshList -> {
                 _isRefresh.update { true }
+                _pageInfoModel.update { PageInfoModel(next = null, prev = null) }
                 reloadLocations()
             }
 

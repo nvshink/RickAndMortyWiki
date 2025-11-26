@@ -65,6 +65,7 @@ fun CharactersScreen(
         listTopContent = {
             PageListTopBar(
                 query = pageListUiState.searchBarText,
+                placeholder = stringResource(R.string.searchbar_placeholder_character),
                 onQueryChange = {
                     onPageListEvent(
                         CharacterPageListEvent.SetSearchBarText(text = it)

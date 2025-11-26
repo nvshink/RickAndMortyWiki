@@ -68,8 +68,8 @@ fun <T> ListOfItems(
                             isRefreshing = isRefreshing,
                             onRefresh = onRefresh
                         ) {
-                            when(listView) {
-                                ListView.Column ->  InfinityLazyColumn(
+                            when (listView) {
+                                ListView.Column -> InfinityLazyColumn(
                                     items = listOfItems,
                                     contentArrangement = listArrangement,
                                     listItem = { item ->
@@ -96,6 +96,7 @@ fun <T> ListOfItems(
                                     onRefresh = onRefresh,
                                     onOffline = onOffline
                                 )
+
                                 ListView.Grid -> InfinityLazyGrid(
                                     items = listOfItems,
                                     cellsArrangement = listArrangement,
@@ -134,12 +135,8 @@ fun <T> ListOfItems(
                                 .padding(16.dp)
                         )
                     }
-
                 }
-
             }
-
-
         },
         detailPane = {
             val id = scaffoldNavigator.currentDestination?.contentKey

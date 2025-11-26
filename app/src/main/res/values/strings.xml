@@ -14,6 +14,8 @@
     <string name="empty_list_title_characters">We not found the data.</string>
     <string name="is_local_data_title">Data from cache</string>
     <string name="searchbar_placeholder_character">Search character by name…</string>
+    <string name="searchbar_placeholder_location">Search location by name…</string>
+    <string name="searchbar_placeholder_episode">Search episode by name…</string>
     <string name="button_reset">Reset</string>
     <string name="button_confirm">Confirm</string>
     <string name="button_refresh">Refresh</string>
@@ -39,6 +41,10 @@
     <string name="location_dimension">Dimension</string>
     <string name="location_type">Type</string>
     <string name="location_residents">Residents</string>
+    <string name="episode_air_date">Air date</string>
+    <string name="episode_on_air">On air</string>
+    <string name="episode_season">Season</string>
+    <string name="episode_episode">Episode</string>
 
 
 </resources>

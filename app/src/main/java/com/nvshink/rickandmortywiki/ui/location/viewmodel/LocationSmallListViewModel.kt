@@ -28,8 +28,10 @@ class LocationSmallListViewModel @Inject constructor(
 ) : ViewModel() {
     private val _isLocal = dataSourceManager.isLocal
     private val _urls = MutableStateFlow<List<String>>(emptyList())
+    private val _reloadCounts = MutableStateFlow(0)
+
     @OptIn(ExperimentalCoroutinesApi::class)
-    private val _locations = combine(_urls, _isLocal) { urls, isLocal ->
+    private val _locations = combine(_urls, _isLocal, _reloadCounts) { urls, isLocal, _ ->
         val ids = urls.map { it.substringAfterLast('/').toInt() }
         if(!isLocal) {
             repository.getLocationsByIdsApi(ids = ids)
@@ -87,6 +89,7 @@ class LocationSmallListViewModel @Inject constructor(
     fun onEvent(event: LocationSmallListEvent) {
         when (event) {
             is LocationSmallListEvent.SetUrls -> _urls.update { event.urls }
+            is LocationSmallListEvent.Refresh -> _reloadCounts.update { it + 1 }
         }
     }
 }

@@ -58,11 +58,6 @@ dependencies {
     implementation(libs.androidx.material.icons.extended)
     implementation(libs.androidx.adaptive.navigation)
 
-    //Json
-    implementation(libs.kotlinx.serialization.json)
-    implementation(libs.converter.gson)
-    implementation(libs.gson)
-
     //Coil
     implementation(libs.coil.compose)
 

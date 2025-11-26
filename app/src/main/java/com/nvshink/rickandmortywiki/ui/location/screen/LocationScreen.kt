@@ -58,6 +58,7 @@ fun LocationScreen(
         listTopContent = {
             PageListTopBar(
                 query = pageListUiState.searchBarText,
+                placeholder = stringResource(R.string.searchbar_placeholder_location),
                 onQueryChange = {
                     onPageListEvent(
                         LocationPageListEvent.SetSearchBarText(text = it)
@@ -79,7 +80,6 @@ fun LocationScreen(
                         )
                     )
                 },
-                onFilterButton = { onPageListEvent(LocationPageListEvent.ShowFilterDialog) },
                 onOnlineButton = {
                     onPageListEvent(LocationPageListEvent.SetIsLocal(false))
                     onPageListEvent(LocationPageListEvent.RefreshList)

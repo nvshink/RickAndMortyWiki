@@ -26,6 +26,9 @@ import com.nvshink.rickandmortywiki.R
 import com.nvshink.rickandmortywiki.ui.character.event.CharacterDetailEvent
 import com.nvshink.rickandmortywiki.ui.character.screen.CharacterItemScreen
 import com.nvshink.rickandmortywiki.ui.character.viewmodel.CharacterDetailViewModel
+import com.nvshink.rickandmortywiki.ui.episode.event.EpisodeDetailEvent
+import com.nvshink.rickandmortywiki.ui.episode.screen.EpisodeItemScreen
+import com.nvshink.rickandmortywiki.ui.episode.viewmodel.EpisodeDetailViewModel
 import com.nvshink.rickandmortywiki.ui.generic.screens.EmptyItemScreen
 import com.nvshink.rickandmortywiki.ui.location.event.LocationDetailEvent
 import com.nvshink.rickandmortywiki.ui.location.screen.LocationItemScreen
@@ -33,6 +36,7 @@ import com.nvshink.rickandmortywiki.ui.location.viewmodel.LocationDetailViewMode
 import com.nvshink.rickandmortywiki.ui.utils.CharacterItemScreenRoute
 import com.nvshink.rickandmortywiki.ui.utils.ContentType
 import com.nvshink.rickandmortywiki.ui.utils.EmptyItemScreenRoute
+import com.nvshink.rickandmortywiki.ui.utils.EpisodeItemScreenRoute
 import com.nvshink.rickandmortywiki.ui.utils.LocationItemScreenRoute
 
 @Composable
@@ -92,8 +96,35 @@ fun DynamicNavigation(
             LocationItemScreen(
                 modifier = itemModifier,
                 detailUiState = locationDetailUiState,
-                onBackPressed = {
-                    navController.navigateUp()
+                onRefreshClick = {
+                    onLocationDetailEvent(LocationDetailEvent.Refresh)
+                },
+                onBackClick = {
+                    if (!navController.navigateUp()) {
+                        onBack()
+                    }
+                },
+                navController = navController,
+                contentType = ContentType.LIST_ONLY
+            )
+        }
+        composable<EpisodeItemScreenRoute> { nav ->
+            val episodeDetailViewModel: EpisodeDetailViewModel = hiltViewModel()
+            val episodeDetailUiState =
+                episodeDetailViewModel.uiState.collectAsState().value
+            val onEpisodeDetailEvent = episodeDetailViewModel::onEvent
+            val args = nav.toRoute<EpisodeItemScreenRoute>()
+            onEpisodeDetailEvent(EpisodeDetailEvent.SetEpisode(args.id))
+            EpisodeItemScreen(
+                modifier = itemModifier,
+                detailUiState = episodeDetailUiState,
+                onRefreshClick = {
+                    onEpisodeDetailEvent(EpisodeDetailEvent.Refresh)
+                },
+                onBackClick = {
+                    if (!navController.navigateUp()) {
+                        onBack()
+                    }
                 },
                 navController = navController,
                 contentType = ContentType.LIST_ONLY
