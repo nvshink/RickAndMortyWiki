@@ -50,16 +50,16 @@ fun CharacterPageListCardContent(
         Alignment.Center
     )
     {
-        AsyncImage(
-            model = character.image,
-            placeholder = ColorPainter(MaterialTheme.colorScheme.surfaceBright),
-            error = ColorPainter(MaterialTheme.colorScheme.errorContainer),
-            contentDescription = null,
-            modifier = Modifier
-                .fillMaxSize()
-                .blur(2.dp),
-            contentScale = ContentScale.FillWidth
-        )
+//        AsyncImage(
+//            model = character.image,
+//            placeholder = ColorPainter(MaterialTheme.colorScheme.surfaceBright),
+//            error = ColorPainter(MaterialTheme.colorScheme.errorContainer),
+//            contentDescription = null,
+//            modifier = Modifier
+//                .fillMaxSize()
+//                .blur(2.dp),
+//            contentScale = ContentScale.FillWidth
+//        )
         Box(
             modifier = Modifier
                 .fillMaxSize()

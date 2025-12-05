@@ -57,7 +57,8 @@ fun RickAndMortyWikiApp(
             screensShape = MaterialTheme.shapes.extraLarge.copy(
                 topEnd = CornerSize(
                     0.dp
-                ), bottomEnd = CornerSize(0.dp)
+                ),
+                bottomEnd = CornerSize(0.dp)
             ) as RoundedCornerShape
         }
 
@@ -67,7 +68,8 @@ fun RickAndMortyWikiApp(
             screensShape = MaterialTheme.shapes.extraLarge.copy(
                 topEnd = CornerSize(
                     0.dp
-                ), bottomEnd = CornerSize(0.dp)
+                ),
+                bottomEnd = CornerSize(0.dp)
             ) as RoundedCornerShape
         }
 
@@ -89,17 +91,14 @@ fun RickAndMortyWikiApp(
                     val characterListUiState = characterPageListViewModel.uiState.collectAsState().value
                     CharactersScreen(
                         modifier = Modifier
-                            .clip(
-                                screensShape
-                            ).padding(horizontal = 5.dp)
-                            .background(MaterialTheme.colorScheme.surfaceContainer),
+                            .clip(screensShape),
+                        listModifier = Modifier.padding(horizontal = 8.dp),
                         pageListUiState = characterListUiState,
                         onPageListEvent = characterPageListViewModel::onEvent,
                         detailModifier = Modifier
-                            .clip(
-                                screensShape
-                            )
-                            .background(MaterialTheme.colorScheme.surface)
+                            .clip(screensShape)
+                            .background(MaterialTheme.colorScheme.surfaceBright)
+                            .padding(horizontal = 8.dp)
                             .fillMaxSize(),
                         contentType = contentType
                     )
@@ -158,6 +157,7 @@ fun RickAndMortyWikiApp(
     when (navigationType) {
         NavigationType.BOTTOM_NAVIGATION -> {
             NavigationBarLayout(
+                modifier = Modifier.background(MaterialTheme.colorScheme.surfaceContainer),
                 currentDestination = currentDestination,
                 onMenuItemSelected = {
                     navController.navigate(route = it) {

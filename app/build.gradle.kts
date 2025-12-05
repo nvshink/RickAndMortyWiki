@@ -67,6 +67,10 @@ dependencies {
     implementation(libs.androidx.animation.core)
     ksp(libs.hilt.compiler)
 
+    // Paging
+    implementation(libs.androidx.paging.runtime.ktx)
+    implementation(libs.androidx.paging.compose)
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

@@ -68,7 +68,9 @@ dependencies {
     implementation(libs.ktor.serialization.kotlinx.json)
     implementation(libs.ktor.client.content.negotiation)
 
-
-    // coil
+    // Coil
     implementation(libs.coil)
+
+    // Paging
+    implementation(libs.androidx.paging.runtime.ktx)
 }

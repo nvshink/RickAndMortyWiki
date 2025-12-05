@@ -65,13 +65,10 @@ class EpisodeRepositoryImpl @Inject constructor(
                 next = responseInfo.next,
                 prev = responseInfo.prev
             )
-            Log.d("TEST", responseResult.toString())
 
 
             //White result in local DB
             responseResult.forEach {
-                Log.d("TEST", EpisodeMapper.responseToEntity(it).toString())
-
                 dao.upsertEpisode(EpisodeMapper.responseToEntity(it))
             }
 

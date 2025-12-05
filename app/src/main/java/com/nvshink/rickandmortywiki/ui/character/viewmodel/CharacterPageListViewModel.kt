@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.compose.animation.SharedTransitionScope
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.paging.Pager
 import com.nvshink.data.generic.local.datasource.DataSourceManager
 import com.nvshink.domain.character.model.CharacterFilterModel
 import com.nvshink.domain.character.model.CharacterModel
@@ -35,6 +36,7 @@ import javax.inject.Inject
 @OptIn(ExperimentalCoroutinesApi::class, FlowPreview::class)
 @HiltViewModel
 open class CharacterPageListViewModel @Inject constructor(
+    private val pager: Pager<Int, CharacterModel>,
     private val repository: CharacterRepository,
     private val dataSourceManager: DataSourceManager
 ) : ViewModel() {
@@ -158,8 +160,6 @@ open class CharacterPageListViewModel @Inject constructor(
             }
 
             is Resource.Success -> {
-                Log.d("TEST", "Success")
-
                 _uiState.update {
                     SuccessState(
                         characterList = characters.data,

@@ -29,6 +29,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun <T> ListOfItems(
     modifier: Modifier = Modifier,
+    listModifier: Modifier = Modifier,
     detailModifier: Modifier = Modifier,
     listView: ListView = ListView.Column,
     listOfItems: List<T>,
@@ -71,6 +72,7 @@ fun <T> ListOfItems(
                         ) {
                             when (listView) {
                                 ListView.Column -> InfinityLazyColumn(
+                                    modifier = listModifier,
                                     items = listOfItems,
                                     contentArrangement = listArrangement,
                                     listItem = { item ->
@@ -99,6 +101,7 @@ fun <T> ListOfItems(
                                 )
 
                                 ListView.Grid -> InfinityLazyGrid(
+                                    modifier = listModifier,
                                     items = listOfItems,
                                     cellsArrangement = listArrangement,
                                     listItem = { item ->

@@ -28,11 +28,13 @@ fun CharactersScreen(
     modifier: Modifier = Modifier,
     pageListUiState: CharacterPageListUiState,
     onPageListEvent: (CharacterPageListEvent) -> Unit,
-    detailModifier: Modifier,
+    detailModifier: Modifier = Modifier,
+    listModifier: Modifier = Modifier,
     contentType: ContentType,
 ) {
     ListOfItems(
         modifier = modifier,
+        listModifier = listModifier,
         detailModifier = detailModifier,
         listView = ListView.Grid,
         listOfItems = pageListUiState.characterList,

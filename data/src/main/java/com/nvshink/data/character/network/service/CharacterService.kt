@@ -27,6 +27,15 @@ class CharacterService @Inject constructor(
                 parameter("gender", gender)
             }.body<PageResponse<CharacterResponse>>()
     }
+
+    suspend fun getGetListOfCharactersByPage(
+        page: Int,
+    ): PageResponse<CharacterResponse> {
+        return client.get(urlString = basePath) {
+            parameter("page", page)
+        }.body<PageResponse<CharacterResponse>>()
+    }
+
     suspend fun getGetListOfCharactersByUrl(url: String): PageResponse<CharacterResponse> {
         return client.get(urlString = url).body<PageResponse<CharacterResponse>>()
     }

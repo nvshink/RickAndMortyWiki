@@ -21,13 +21,14 @@ materialIconsExtended = "1.7.8"
 material3WindowSizeClass = "1.4.0"
 material3AdaptiveNavigationSuite = "1.4.0"
 navigationUiKtx = "2.9.6"
+paging = "3.3.6"
 kotlinxCoroutines = "1.10.2"
 room = "2.8.4"
 roomCommon = "2.8.4"
 hilt-version = "2.57.2"
 ksp-version = "2.2.20-2.0.4"
 coilVersion = "2.7.0"
-ktor = "3.3.2"
+ktor = "3.3.3"
 animationCore = "1.9.5"
 
 [libraries]
@@ -66,6 +67,8 @@ androidx-room-runtime = { group = "androidx.room", name = "room-runtime", versio
 androidx-room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "room"}
 androidx-room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "room"}
 androidx-room-common = { group = "androidx.room", name = "room-common", version.ref = "roomCommon" }
+androidx-paging-runtime-ktx = { group = "androidx.paging", name = "paging-runtime-ktx", version.ref = "paging" }
+androidx-paging-compose = { group = "androidx.paging", name = "paging-compose", version.ref = "paging" }
 ktor-client-core = { module = "io.ktor:ktor-client-core", version.ref = "ktor" }
 ktor-client-okhttp = { module = "io.ktor:ktor-client-okhttp", version.ref = "ktor" }
 ktor-client-content-negotiation = { module = "io.ktor:ktor-client-content-negotiation", version.ref = "ktor" }

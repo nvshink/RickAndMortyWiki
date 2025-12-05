@@ -11,172 +11,170 @@ import com.nvshink.domain.character.model.CharacterModel
 import com.nvshink.domain.character.model.CharacterStatus
 import java.time.ZonedDateTime
 
-object CharacterMapper {
-    fun entityToModel(entity: CharacterEntity): CharacterModel = CharacterModel(
-        id = entity.id,
-        name = entity.name,
-        status = when (entity.status) {
+    fun CharacterEntity.toModel(): CharacterModel = CharacterModel(
+        id = id,
+        name = name,
+        status = when (status) {
             "Alive" -> CharacterStatus.ALIVE
             "Dead" -> CharacterStatus.DEAD
             else -> CharacterStatus.UNKNOWN
         },
-        species = entity.species,
-        type = entity.type,
-        gender = when (entity.gender) {
+        species = species,
+        type = type,
+        gender = when (gender) {
             "Male" -> CharacterGender.MALE
             "Female" -> CharacterGender.FEMALE
             "Genderless" -> CharacterGender.GENDERLESS
             else -> CharacterGender.UNKNOWN
         },
         origin = CharacterLocationModel(
-            id = entity.origin.locationId,
-            name = entity.origin.name,
-            url = entity.origin.url
+            id = origin.locationId,
+            name = origin.name,
+            url = origin.url
         ),
         location = CharacterLocationModel(
-            id = entity.location.locationId,
-            name = entity.location.name,
-            url = entity.location.url
+            id = location.locationId,
+            name = location.name,
+            url = location.url
         ),
-        image = entity.image,
-        episode = entity.episode,
-        url = entity.url,
-        created = ZonedDateTime.parse(entity.created)
+        image = image,
+        episode = episode,
+        url = url,
+        created = ZonedDateTime.parse(created)
     )
 
-    fun modelToEntity(model: CharacterModel): CharacterEntity = CharacterEntity(
-        id = model.id,
-        name = model.name,
-        status = when (model.status) {
+    fun CharacterModel.toEntity(): CharacterEntity = CharacterEntity(
+        id = id,
+        name = name,
+        status = when (status) {
             CharacterStatus.ALIVE -> "Alive"
             CharacterStatus.DEAD -> "Dead"
             CharacterStatus.UNKNOWN -> "unknown"
         },
-        species = model.species,
-        type = model.type,
-        gender = when (model.gender) {
+        species = species,
+        type = type,
+        gender = when (gender) {
             CharacterGender.MALE -> "Male"
             CharacterGender.FEMALE -> "Female"
             CharacterGender.GENDERLESS -> "Genderless"
             CharacterGender.UNKNOWN -> "unknown"
         },
         origin = CharacterLocationEntity(
-            locationId = model.origin.id,
-            name = model.origin.name,
-            url = model.origin.url
+            locationId = origin.id,
+            name = origin.name,
+            url = origin.url
         ),
         location = CharacterLocationEntity(
-            locationId = model.origin.id,
-            name = model.location.name,
-            url = model.location.url
+            locationId = origin.id,
+            name = location.name,
+            url = location.url
         ),
-        image = model.image,
-        episode = model.episode,
-        url = model.url,
-        created = model.created.toString()
+        image = image,
+        episode = episode,
+        url = url,
+        created = created.toString()
     )
 
-    fun responseToModel(response: CharacterResponse): CharacterModel = CharacterModel(
-        id = response.id,
-        name = response.name,
-        status = when (response.status) {
+    fun CharacterResponse.toModel(): CharacterModel = CharacterModel(
+        id = id,
+        name = name,
+        status = when (status) {
             "Alive" -> CharacterStatus.ALIVE
             "Dead" -> CharacterStatus.DEAD
             else -> CharacterStatus.UNKNOWN
         },
-        species = response.species,
-        type = response.type,
-        gender = when (response.gender) {
+        species = species,
+        type = type,
+        gender = when (gender) {
             "Male" -> CharacterGender.MALE
             "Female" -> CharacterGender.FEMALE
             "Genderless" -> CharacterGender.GENDERLESS
             else -> CharacterGender.UNKNOWN
         },
         origin = CharacterLocationModel(
-            id = urlToId(response.origin.url),
-            name = response.origin.name,
-            url = response.origin.url
+            id = urlToId(origin.url),
+            name = origin.name,
+            url = origin.url
         ),
         location = CharacterLocationModel(
-            id = urlToId(response.location.url),
-            name = response.location.name,
-            url = response.location.url
+            id = urlToId(location.url),
+            name = location.name,
+            url = location.url
         ),
-        image = response.image,
-        episode = response.episode,
-        url = response.url,
-        created = ZonedDateTime.parse(response.created)
+        image = image,
+        episode = episode,
+        url = url,
+        created = ZonedDateTime.parse(created)
     )
 
-    fun modelToResponse(model: CharacterModel): CharacterResponse = CharacterResponse(
-        id = model.id,
-        name = model.name,
-        status = when (model.status) {
+    fun CharacterModel.toResponse(): CharacterResponse = CharacterResponse(
+        id = id,
+        name = name,
+        status = when (status) {
             CharacterStatus.ALIVE -> "Alive"
             CharacterStatus.DEAD -> "Dead"
             CharacterStatus.UNKNOWN -> "unknown"
         },
-        species = model.species,
-        type = model.type,
-        gender = when (model.gender) {
+        species = species,
+        type = type,
+        gender = when (gender) {
             CharacterGender.MALE -> "Male"
             CharacterGender.FEMALE -> "Female"
             CharacterGender.GENDERLESS -> "Genderless"
             CharacterGender.UNKNOWN -> "unknown"
         },
-        origin = CharacterLocationResponse(name = model.origin.name, url = model.origin.url),
-        location = CharacterLocationResponse(name = model.location.name, url = model.location.url),
-        image = model.image,
-        episode = model.episode,
-        url = model.url,
-        created = model.created.toString()
+        origin = CharacterLocationResponse(name = origin.name, url = origin.url),
+        location = CharacterLocationResponse(name = location.name, url = location.url),
+        image = image,
+        episode = episode,
+        url = url,
+        created = created.toString()
     )
 
-    fun entityToResponse(entity: CharacterEntity): CharacterResponse = CharacterResponse(
-        id = entity.id,
-        name = entity.name,
-        status = entity.status,
-        species = entity.species,
-        type = entity.type,
-        gender = entity.gender,
+    fun CharacterEntity.toResponse(): CharacterResponse = CharacterResponse(
+        id = id,
+        name = name,
+        status = status,
+        species = species,
+        type = type,
+        gender = gender,
         origin = CharacterLocationResponse(
-            name = entity.origin.name,
-            url = entity.origin.url
+            name = origin.name,
+            url = origin.url
         ),
         location = CharacterLocationResponse(
-            name = entity.location.name,
-            url = entity.location.url
+            name = location.name,
+            url = location.url
         ),
-        image = entity.image,
-        episode = entity.episode,
-        url = entity.url,
-        created = entity.created
+        image = image,
+        episode = episode,
+        url = url,
+        created = created
     )
 
-    fun responseToEntity(response: CharacterResponse): CharacterEntity = CharacterEntity(
-        id = response.id,
-        name = response.name,
-        status = response.status,
-        species = response.species,
-        type = response.type,
-        gender = response.gender,
+    fun CharacterResponse.toEntity(): CharacterEntity = CharacterEntity(
+        id = id,
+        name = name,
+        status = status,
+        species = species,
+        type = type,
+        gender = gender,
         origin = CharacterLocationEntity(
-            locationId = urlToId(response.origin.url),
-            name = response.origin.name,
-            url = response.origin.url
+            locationId = urlToId(origin.url),
+            name = origin.name,
+            url = origin.url
         ),
         location = CharacterLocationEntity(
-            locationId = urlToId(response.origin.url),
-            name = response.location.name,
-            url = response.location.url
+            locationId = urlToId(origin.url),
+            name = location.name,
+            url = location.url
         ),
-        image = response.image,
-        episode = response.episode,
-        url = response.url,
-        created = response.created
+        image = image,
+        episode = episode,
+        url = url,
+        created = created
     )
 
     private fun urlToId(url: String): Int? {
         return if(url.isNotEmpty()) url.substringAfterLast("/").toInt() else null
     }
-}
