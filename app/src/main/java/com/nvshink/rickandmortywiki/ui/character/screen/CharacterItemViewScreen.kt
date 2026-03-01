@@ -26,29 +26,25 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.DefaultAlpha
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavHostController
-import coil.compose.AsyncImage
-import com.nvshink.domain.character.model.CharacterGender
-import com.nvshink.domain.character.model.CharacterLocationModel
 import com.nvshink.domain.character.model.CharacterModel
-import com.nvshink.domain.character.model.CharacterStatus
 import com.nvshink.rickandmortywiki.R
-import com.nvshink.rickandmortywiki.ui.character.state.CharacterSmallListUiState
 import com.nvshink.rickandmortywiki.ui.episode.state.EpisodeSmallListUiState
 import com.nvshink.rickandmortywiki.ui.generic.components.list.SmallListOfItems
-import com.nvshink.rickandmortywiki.ui.location.screen.CharacterSmallListItem
 import com.nvshink.rickandmortywiki.ui.location.screen.EpisodeSmallListItem
-import com.nvshink.rickandmortywiki.ui.utils.CharacterItemScreenRoute
 import com.nvshink.rickandmortywiki.ui.utils.EpisodeItemScreenRoute
 import com.nvshink.rickandmortywiki.ui.utils.LocationItemScreenRoute
 import com.nvshink.rickandmortywiki.ui.utils.getIcon
 import com.nvshink.rickandmortywiki.ui.utils.getName
+import io.kamel.image.KamelImage
+import io.kamel.image.asyncPainterResource
 import java.time.ZonedDateTime
 
 @Composable
@@ -66,12 +62,19 @@ fun CharacterItemViewScreen(
             Card(
                 elevation = CardDefaults.elevatedCardElevation(10.dp)
             ) {
-                AsyncImage(
-                    character.image, contentDescription = null, modifier = Modifier
-                        .clip(
-                            MaterialTheme.shapes.large
-                        )
-                        .size(200.dp)
+                KamelImage({ asyncPainterResource(data = character.image) },
+                    contentDescription = null,
+                    modifier = Modifier
+                        .clip(MaterialTheme.shapes.large)
+                        .size(200.dp),
+                    alignment = Alignment.Center,
+                    contentScale = ContentScale.Fit,
+                    alpha = DefaultAlpha,
+                    colorFilter = null,
+                    onLoading = null,
+                    onFailure = null,
+                    contentAlignment = Alignment.Center,
+                    animationSpec = null
                 )
             }
         }

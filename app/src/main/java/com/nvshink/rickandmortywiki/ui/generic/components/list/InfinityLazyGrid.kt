@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyGridState
@@ -17,10 +18,12 @@ import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowUpward
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
@@ -34,17 +37,20 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.paging.LoadState
+import androidx.paging.compose.LazyPagingItems
 import com.nvshink.rickandmortywiki.R
 import com.nvshink.rickandmortywiki.ui.generic.components.box.ErrorBox
 import com.nvshink.rickandmortywiki.ui.generic.components.box.LoadingBox
 import com.nvshink.rickandmortywiki.ui.generic.screens.EmptyItemScreen
+import com.nvshink.rickandmortywiki.ui.generic.screens.ItemErrorScreen
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
 
 @Composable
-fun <T> InfinityLazyGrid(
+fun <T : Any> InfinityLazyGrid(
     modifier: Modifier = Modifier,
-    items: List<T>,
+    items: LazyPagingItems<T>,
     cellsArrangement: Dp,
     listItem: @Composable (T) -> Unit,
     listTopContent: (@Composable () -> Unit)? = null,
@@ -57,66 +63,137 @@ fun <T> InfinityLazyGrid(
     onRefresh: () -> Unit,
     onOffline: (Boolean) -> Unit
 ) {
-    val lazyGridState = rememberLazyGridState()
-    val coroutineScope = rememberCoroutineScope()
     Box(modifier = modifier) {
-            LazyVerticalGrid(
-                modifier = Modifier
-                    .fillMaxWidth(),
-                columns = GridCells.Fixed(2),
-                state = lazyGridState,
-                horizontalArrangement = Arrangement.spacedBy(cellsArrangement),
-                verticalArrangement = Arrangement.spacedBy(cellsArrangement)
-            ) {
-                if (listTopContent != null) {
+        LazyVerticalGrid(
+            modifier = Modifier.fillMaxSize(),
+            columns = GridCells.Fixed(2),
+        ) {
+            item(span = { GridItemSpan(maxLineSpan) }) {
+                listTopContent?.invoke()
+            }
+            items(
+                count = items.itemCount,
+//            key = { index ->
+//                items.peek(index)?.id ?: index
+//            } // Генерируем ключ для стабильности
+            ) { index ->
+                val item = items[index] // Получаем элемент по индексу
+                item?.let { listItem(item) }
+            }
+
+            // --- Блок обработки состояний загрузки (остается таким же) ---
+            when {
+                // Первоначальная загрузка
+                items.loadState.refresh is LoadState.Loading -> {
                     item(span = { GridItemSpan(maxLineSpan) }) {
-                        listTopContent()
+                        Box(
+                            modifier = Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            LoadingBox()
+                        }
                     }
                 }
-                if (!isLoading && errorMessage.isNullOrBlank() && items.isEmpty()) {
+                // Ошибка первоначальной загрузки
+                items.loadState.refresh is LoadState.Error -> {
                     item(span = { GridItemSpan(maxLineSpan) }) {
-                        EmptyItemScreen(
+                        val e = items.loadState.refresh as LoadState.Error
+                        // Здесь можно отобразить сообщение об ошибке
+                        ItemErrorScreen(
                             modifier = Modifier.fillMaxSize(),
-                            title = emptyListTitle,
-                            icon = emptyListIcon,
-                            iconDescription = emptyListIconDescription,
-                            onRefresh = onRefresh
+                            errorMessage = e.error.localizedMessage ?: "",
+                            onClick = onRefresh
                         )
                     }
-                } else {
-                    itemsIndexed(items = items, contentType = { index, item -> item }) { index, item ->
-                        listItem(item)
+                }
+                // Подгрузка следующей страницы
+                items.loadState.append is LoadState.Loading -> {
+                    item(span = { GridItemSpan(maxLineSpan) }) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            LoadingBox()
+                        }
                     }
                 }
-                if (errorMessage != null) {
+                // Ошибка подгрузки следующей страницы
+                items.loadState.append is LoadState.Error -> {
                     item(span = { GridItemSpan(maxLineSpan) }) {
+                        val e = items.loadState.append as LoadState.Error
                         ErrorBox(
-                            errorMessage = errorMessage,
+                            errorMessage = e.error.localizedMessage ?: "",
                             onRetryClick = onLoadMore,
                             onOfflineClick = onOffline
                         )
                     }
                 }
-                if (isLoading) {
-                    item(span = { GridItemSpan(maxLineSpan) }) {
-                        LoadingBox()
-                    }
-                }
-        }
-        InfiniteListHandler(lazyGridState = lazyGridState, onLoadMore = onLoadMore)
-
-        ToTopBottomGrid(
-            modifier = Modifier
-                .align(Alignment.BottomStart)
-                .padding(16.dp),
-            lazyGridState = lazyGridState,
-            onClick = {
-                coroutineScope.launch {
-                    lazyGridState.scrollToItem(0)
-                }
             }
-        )
+        }
     }
+
+//    val lazyGridState = rememberLazyGridState()
+//    val coroutineScope = rememberCoroutineScope()
+//    Box(modifier = modifier) {
+//            LazyVerticalGrid(
+//                modifier = Modifier
+//                    .fillMaxWidth(),
+//                columns = GridCells.Fixed(2),
+//                state = lazyGridState,
+//                horizontalArrangement = Arrangement.spacedBy(cellsArrangement),
+//                verticalArrangement = Arrangement.spacedBy(cellsArrangement)
+//            ) {
+//                if (listTopContent != null) {
+//                    item(span = { GridItemSpan(maxLineSpan) }) {
+//                        listTopContent()
+//                    }
+//                }
+//                if (!isLoading && errorMessage.isNullOrBlank() && items.isEmpty()) {
+//                    item(span = { GridItemSpan(maxLineSpan) }) {
+//                        EmptyItemScreen(
+//                            modifier = Modifier.fillMaxSize(),
+//                            title = emptyListTitle,
+//                            icon = emptyListIcon,
+//                            iconDescription = emptyListIconDescription,
+//                            onRefresh = onRefresh
+//                        )
+//                    }
+//                } else {
+//                    itemsIndexed(items = items, contentType = { index, item -> item }) { index, item ->
+//                        listItem(item)
+//                    }
+//                }
+//                if (errorMessage != null) {
+//                    item(span = { GridItemSpan(maxLineSpan) }) {
+//                        ErrorBox(
+//                            errorMessage = errorMessage,
+//                            onRetryClick = onLoadMore,
+//                            onOfflineClick = onOffline
+//                        )
+//                    }
+//                }
+//                if (isLoading) {
+//                    item(span = { GridItemSpan(maxLineSpan) }) {
+//                        LoadingBox()
+//                    }
+//                }
+//        }
+//        InfiniteListHandler(lazyGridState = lazyGridState, onLoadMore = onLoadMore)
+//
+//        ToTopBottomGrid(
+//            modifier = Modifier
+//                .align(Alignment.BottomStart)
+//                .padding(16.dp),
+//            lazyGridState = lazyGridState,
+//            onClick = {
+//                coroutineScope.launch {
+//                    lazyGridState.scrollToItem(0)
+//                }
+//            }
+//        )
+//    }
 }
 
 @Composable

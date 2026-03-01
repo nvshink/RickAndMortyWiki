@@ -34,7 +34,6 @@ fun ListItem(
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
             onClick = onCardClick
         ) {
-
             content()
         }
     }

@@ -5,13 +5,19 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.ProgressIndicatorDefaults
 import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
 import androidx.compose.material3.adaptive.layout.AnimatedPane
 import androidx.compose.material3.adaptive.layout.ListDetailPaneScaffoldRole
 import androidx.compose.material3.adaptive.navigation.NavigableListDetailPaneScaffold
 import androidx.compose.material3.adaptive.navigation.rememberListDetailPaneScaffoldNavigator
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults
+import androidx.compose.material3.pulltorefresh.pullToRefresh
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.key
 import androidx.compose.runtime.rememberCoroutineScope
@@ -20,19 +26,24 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.paging.compose.LazyPagingItems
+import com.nvshink.rickandmortywiki.ui.generic.components.box.LoadingBox
 import com.nvshink.rickandmortywiki.ui.generic.components.navigation.DynamicNavigation
 import com.nvshink.rickandmortywiki.ui.generic.components.navigation.ScreenTransitions
 import com.nvshink.rickandmortywiki.ui.generic.screens.EmptyItemScreen
 import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3AdaptiveApi::class)
+@OptIn(
+    ExperimentalMaterial3Api::class, ExperimentalMaterial3AdaptiveApi::class,
+    ExperimentalMaterial3ExpressiveApi::class
+)
 @Composable
-fun <T> ListOfItems(
+fun <T : Any> ListOfItems(
     modifier: Modifier = Modifier,
     listModifier: Modifier = Modifier,
     detailModifier: Modifier = Modifier,
     listView: ListView = ListView.Column,
-    listOfItems: List<T>,
+    listOfItems: LazyPagingItems<T>,
     isLoading: Boolean,
     isRefreshing: Boolean,
     onRefresh: () -> Unit,
@@ -54,7 +65,7 @@ fun <T> ListOfItems(
 ) {
     val coroutineScope = rememberCoroutineScope()
     val scaffoldNavigator = rememberListDetailPaneScaffoldNavigator<Int>()
-
+    val state = rememberPullToRefreshState()
     NavigableListDetailPaneScaffold(
         modifier = modifier,
         navigator = scaffoldNavigator,
@@ -63,13 +74,22 @@ fun <T> ListOfItems(
             AnimatedPane {
                 Box {
                     Column(
-                        modifier = Modifier.fillMaxSize(),
+                        modifier = Modifier
+                            .fillMaxSize(),
                         verticalArrangement = Arrangement.spacedBy(20.dp)
                     ) {
                         PullToRefreshBox(
                             isRefreshing = isRefreshing,
-                            onRefresh = onRefresh
-                        ) {
+                            onRefresh = onRefresh,
+                            state = state,
+                            indicator = {
+                                PullToRefreshDefaults.LoadingIndicator(
+                                    state = state,
+                                    isRefreshing = isRefreshing
+                                )
+                            }
+                        )
+                        {
                             when (listView) {
                                 ListView.Column -> InfinityLazyColumn(
                                     modifier = listModifier,
@@ -130,7 +150,6 @@ fun <T> ListOfItems(
                                 )
                             }
                         }
-
                     }
                     if (fab != null) {
                         fab(

@@ -2,7 +2,6 @@ package com.nvshink.data.episode.repository
 
 import android.util.Log
 import androidx.room.RoomRawQuery
-import com.nvshink.data.character.utils.CharacterMapper
 import com.nvshink.data.episode.local.dao.EpisodeDao
 import com.nvshink.data.episode.network.response.EpisodeResponse
 import com.nvshink.data.episode.network.service.EpisodeService

@@ -25,67 +25,67 @@ fun LocationScreen(
     detailModifier: Modifier,
     contentType: ContentType,
 ) {
-    ListOfItems(
-        modifier = modifier,
-        detailModifier = detailModifier,
-        listOfItems = pageListUiState.locationList,
-        isLoading = pageListUiState::class == LocationPageListUiState.LoadingState::class,
-        isRefreshing = pageListUiState.isRefreshing,
-        onRefresh = { onPageListEvent(LocationPageListEvent.RefreshList) },
-        onLoadMore = { onPageListEvent(LocationPageListEvent.LoadMore) },
-        onOffline = { isLocal ->
-            onPageListEvent(LocationPageListEvent.SetIsLocal(isLocal))
-            onPageListEvent(LocationPageListEvent.RefreshList)
-        },
-        errorMessage = if (pageListUiState is LocationPageListUiState.ErrorState) pageListUiState.error?.message else null,
-        emptyListTitle = stringResource(R.string.empty_list_title_characters),
-        emptyListIcon = Icons.Filled.LocationOff,
-        emptyListIconDescription = stringResource(R.string.empty_list_icon_description_characters),
-        emptyDetailTitle = stringResource(R.string.empty_screen_title_location),
-        emptyDetailIcon = Icons.Filled.LocationOn,
-        emptyDetailIconDescription = stringResource(R.string.empty_screen_icon_description_location),
-        listArrangement = 10.dp,
-        fab = null,
-        listItem = {location ->
-            LocationPageListCardContent(location = location)
-        },
-        listItemRoute = { locationId ->
-            LocationItemScreenRoute(locationId)
-        },
-        listId = { location ->
-            location.id
-        },
-        listTopContent = {
-            PageListTopBar(
-                query = pageListUiState.searchBarText,
-                placeholder = stringResource(R.string.searchbar_placeholder_location),
-                onQueryChange = {
-                    onPageListEvent(
-                        LocationPageListEvent.SetSearchBarText(text = it)
-                    )
-                    onPageListEvent(
-                        LocationPageListEvent.SetFilter(
-                            filter = pageListUiState.filter.copy(
-                                name = it
-                            )
-                        )
-                    )
-                },
-                onSearch = {
-                    onPageListEvent(
-                        LocationPageListEvent.SetFilter(
-                            filter = pageListUiState.filter.copy(
-                                name = it
-                            )
-                        )
-                    )
-                },
-                onOnlineButton = {
-                    onPageListEvent(LocationPageListEvent.SetIsLocal(false))
-                    onPageListEvent(LocationPageListEvent.RefreshList)
-                },
-                isLocal = pageListUiState.isLocal
-            )
-        },
-    )
+//    ListOfItems(
+//        modifier = modifier,
+//        detailModifier = detailModifier,
+//        listOfItems = pageListUiState.locationList,
+//        isLoading = pageListUiState::class == LocationPageListUiState.LoadingState::class,
+//        isRefreshing = pageListUiState.isRefreshing,
+//        onRefresh = { onPageListEvent(LocationPageListEvent.RefreshList) },
+//        onLoadMore = { onPageListEvent(LocationPageListEvent.LoadMore) },
+//        onOffline = { isLocal ->
+//            onPageListEvent(LocationPageListEvent.SetIsLocal(isLocal))
+//            onPageListEvent(LocationPageListEvent.RefreshList)
+//        },
+//        errorMessage = if (pageListUiState is LocationPageListUiState.ErrorState) pageListUiState.error?.message else null,
+//        emptyListTitle = stringResource(R.string.empty_list_title_characters),
+//        emptyListIcon = Icons.Filled.LocationOff,
+//        emptyListIconDescription = stringResource(R.string.empty_list_icon_description_characters),
+//        emptyDetailTitle = stringResource(R.string.empty_screen_title_location),
+//        emptyDetailIcon = Icons.Filled.LocationOn,
+//        emptyDetailIconDescription = stringResource(R.string.empty_screen_icon_description_location),
+//        listArrangement = 10.dp,
+//        fab = null,
+//        listItem = {location ->
+//            LocationPageListCardContent(location = location)
+//        },
+//        listItemRoute = { locationId ->
+//            LocationItemScreenRoute(locationId)
+//        },
+//        listId = { location ->
+//            location.id
+//        },
+//        listTopContent = {
+//            PageListTopBar(
+//                query = pageListUiState.searchBarText,
+//                placeholder = stringResource(R.string.searchbar_placeholder_location),
+//                onQueryChange = {
+//                    onPageListEvent(
+//                        LocationPageListEvent.SetSearchBarText(text = it)
+//                    )
+//                    onPageListEvent(
+//                        LocationPageListEvent.SetFilter(
+//                            filter = pageListUiState.filter.copy(
+//                                name = it
+//                            )
+//                        )
+//                    )
+//                },
+//                onSearch = {
+//                    onPageListEvent(
+//                        LocationPageListEvent.SetFilter(
+//                            filter = pageListUiState.filter.copy(
+//                                name = it
+//                            )
+//                        )
+//                    )
+//                },
+//                onOnlineButton = {
+//                    onPageListEvent(LocationPageListEvent.SetIsLocal(false))
+//                    onPageListEvent(LocationPageListEvent.RefreshList)
+//                },
+//                isLocal = pageListUiState.isLocal
+//            )
+//        },
+//    )
 }

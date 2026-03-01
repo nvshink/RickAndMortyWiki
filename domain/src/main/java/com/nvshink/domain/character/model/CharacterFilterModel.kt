@@ -9,9 +9,9 @@ package com.nvshink.domain.character.model
  * @param gender The gender of the character ('Female', 'Male', 'Genderless' or 'unknown').
  */
 data class CharacterFilterModel(
-    val name: String?,
-    val status: CharacterStatus?,
-    val species: String?,
-    val type: String?,
-    val gender: CharacterGender?
+    val name: String? = null,
+    val status: CharacterStatus? = null,
+    val species: String? = null,
+    val type: String? = null,
+    val gender: CharacterGender? = null
 )

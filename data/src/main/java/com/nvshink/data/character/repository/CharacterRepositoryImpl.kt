@@ -1,11 +1,23 @@
 package com.nvshink.data.character.repository
 
 import android.util.Log
+import androidx.paging.ExperimentalPagingApi
+import androidx.paging.Pager
+import androidx.paging.PagingConfig
+import androidx.paging.PagingData
+import androidx.paging.map
+import androidx.room.RoomDatabase
+import androidx.room.withTransaction
 import androidx.room.RoomRawQuery
 import com.nvshink.data.character.local.dao.CharacterDao
 import com.nvshink.data.character.network.response.CharacterResponse
 import com.nvshink.data.character.network.service.CharacterService
-import com.nvshink.data.character.utils.CharacterMapper
+import com.nvshink.data.character.paging.CharacterLocalPagingSource
+import com.nvshink.data.character.paging.CharacterPagingSource
+import com.nvshink.data.character.paging.CharacterRemoteMediator
+import com.nvshink.data.character.utils.toEntity
+import com.nvshink.data.character.utils.toModel
+import com.nvshink.data.generic.local.room.RickAndMortyWikiDB
 import com.nvshink.data.generic.network.exception.ResourceNotFoundException
 import com.nvshink.data.generic.network.response.PageResponse
 import com.nvshink.domain.character.model.CharacterFilterModel
@@ -21,8 +33,28 @@ import kotlin.coroutines.cancellation.CancellationException
 
 class CharacterRepositoryImpl @Inject constructor(
     private val dao: CharacterDao,
-    private val service: CharacterService
+    private val service: CharacterService,
+    private val database: RickAndMortyWikiDB
 ) : CharacterRepository {
+
+    @OptIn(ExperimentalPagingApi::class)
+    override fun getCharactersStream(
+        filterModel: CharacterFilterModel
+    ): Flow<PagingData<CharacterModel>> {
+        return Pager(
+            config = PagingConfig(
+                pageSize = 20,
+                prefetchDistance = 5,
+                enablePlaceholders = false
+            ),
+            remoteMediator = CharacterRemoteMediator(
+                database = database,
+                dao = dao,
+                service = service
+            ),
+            pagingSourceFactory = { CharacterLocalPagingSource(dao) }
+        ).flow.map { pagingData -> pagingData.map { entity -> entity.toModel() } }
+    }
     /**
      * Get list of characters and page if data is remote:
      * @param pageInfoModel Current page information. If data is from cache it is null.
@@ -69,7 +101,7 @@ class CharacterRepositoryImpl @Inject constructor(
 
             //White result in local DB
             responseResult.forEach {
-                dao.upsertCharacter(CharacterMapper.responseToEntity(it))
+                dao.upsertCharacter(it.toEntity())
             }
 
             // Return characters
@@ -78,7 +110,7 @@ class CharacterRepositoryImpl @Inject constructor(
                     first = newCharacterPageInfoModel,
                     second = Resource.Success(
                         responseResult.map {
-                            CharacterMapper.responseToModel(it)
+                            it.toModel()
                         }
                     )
                 )
@@ -113,10 +145,10 @@ class CharacterRepositoryImpl @Inject constructor(
                 ids.forEach { id -> path += "$id," }
                 val response = service.getGetListOfCharactersByPath(path)
                 response.forEach {
-                    dao.upsertCharacter(CharacterMapper.responseToEntity(it))
+                    dao.upsertCharacter(it.toEntity())
                 }
                 emit(Resource.Success(response.map {
-                    CharacterMapper.responseToModel(it)
+                    it.toModel()
                 }))
             } catch (ce: CancellationException) {
                 throw ce
@@ -141,10 +173,10 @@ class CharacterRepositoryImpl @Inject constructor(
         emit(Resource.Loading)
         try {
             val response = service.getGetCharacterById(id)
-            dao.upsertCharacter(CharacterMapper.responseToEntity(response))
+            dao.upsertCharacter(response.toEntity())
             emit(
                 Resource.Success(
-                    (CharacterMapper.responseToModel(response))
+                    (response.toModel())
                 )
             )
         } catch (ce: CancellationException) {
@@ -168,25 +200,25 @@ class CharacterRepositoryImpl @Inject constructor(
         emit(Resource.Loading)
         //Try load from cache
         try {
-            dao.getCharacters(
-                query = sqlCharacterQueryBuilder(
-                    name = filterModel.name,
-                    status = filterModel.status?.name,
-                    species = filterModel.species,
-                    type = filterModel.type,
-                    gender = filterModel.gender?.name
-                )
-            ).map {
-                it.map { characterEntity ->
-                    CharacterMapper.entityToModel(characterEntity)
-                }
-            }.collect { characters ->
-                emit(
-                    Resource.Success(
-                        data = characters
-                    )
-                )
-            }
+//            dao.getCharacters(
+//                query = sqlCharacterQueryBuilder(
+//                    name = filterModel.name,
+//                    status = filterModel.status?.name,
+//                    species = filterModel.species,
+//                    type = filterModel.type,
+//                    gender = filterModel.gender?.name
+//                )
+//            ).map {
+//                it.map { characterEntity ->
+//                    characterEntity.toModel()
+//                }
+//            }.collect { characters ->
+//                emit(
+//                    Resource.Success(
+//                        data = characters
+//                    )
+//                )
+//            }
         } catch (ce: CancellationException) {
             throw ce
         } catch (dbException: Exception) {
@@ -200,7 +232,7 @@ class CharacterRepositoryImpl @Inject constructor(
             emit(Resource.Loading)
             try {
                 dao.getCharactersByIds(ids).map { characters ->
-                    characters.map { CharacterMapper.entityToModel(entity = it) }
+                    characters.map { it.toModel() }
                 }.collect {
                     emit(
                         Resource.Success(
@@ -221,7 +253,7 @@ class CharacterRepositoryImpl @Inject constructor(
             dao.getCharactersById(id).collect { cachedEntity ->
                 emit(
                     Resource.Success(
-                        data = CharacterMapper.entityToModel(cachedEntity)
+                        data = cachedEntity.toModel()
                     )
                 )
             }

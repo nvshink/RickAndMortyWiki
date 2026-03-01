@@ -21,6 +21,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.paging.compose.collectAsLazyPagingItems
 import com.nvshink.rickandmortywiki.ui.character.screen.CharactersScreen
 import com.nvshink.rickandmortywiki.ui.character.viewmodel.CharacterPageListViewModel
 import com.nvshink.rickandmortywiki.ui.episode.screen.EpisodeScreen
@@ -93,6 +94,7 @@ fun RickAndMortyWikiApp(
                         modifier = Modifier
                             .clip(screensShape),
                         listModifier = Modifier.padding(horizontal = 8.dp),
+                        characters = characterPageListViewModel.getCharacters().collectAsLazyPagingItems(),
                         pageListUiState = characterListUiState,
                         onPageListEvent = characterPageListViewModel::onEvent,
                         detailModifier = Modifier

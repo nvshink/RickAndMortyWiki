@@ -11,6 +11,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.paging.compose.LazyPagingItems
+import com.nvshink.domain.character.model.CharacterModel
 import com.nvshink.rickandmortywiki.R
 import com.nvshink.rickandmortywiki.ui.character.components.CharacterFilterDialog
 import com.nvshink.rickandmortywiki.ui.character.components.CharacterPageListCardContent
@@ -27,6 +29,7 @@ import com.nvshink.rickandmortywiki.ui.utils.ContentType
 fun CharactersScreen(
     modifier: Modifier = Modifier,
     pageListUiState: CharacterPageListUiState,
+    characters: LazyPagingItems<CharacterModel>,
     onPageListEvent: (CharacterPageListEvent) -> Unit,
     detailModifier: Modifier = Modifier,
     listModifier: Modifier = Modifier,
@@ -37,8 +40,9 @@ fun CharactersScreen(
         listModifier = listModifier,
         detailModifier = detailModifier,
         listView = ListView.Grid,
-        listOfItems = pageListUiState.characterList,
-        isLoading = pageListUiState::class == CharacterPageListUiState.LoadingState::class,
+        listOfItems = characters,
+//        isLoading = pageListUiState::class == CharacterPageListUiState.LoadingState::class,
+        isLoading = false,
         isRefreshing = pageListUiState.isRefreshing,
         onRefresh = { onPageListEvent(CharacterPageListEvent.RefreshList) },
         onLoadMore = { onPageListEvent(CharacterPageListEvent.LoadMore) },
@@ -46,7 +50,8 @@ fun CharactersScreen(
             onPageListEvent(CharacterPageListEvent.SetIsLocal(isLocal = isLocal))
             onPageListEvent(CharacterPageListEvent.RefreshList)
         },
-        errorMessage = if (pageListUiState is CharacterPageListUiState.ErrorState) pageListUiState.error?.message else null,
+//        errorMessage = if (pageListUiState is CharacterPageListUiState.ErrorState) pageListUiState.error?.message else null,
+        errorMessage = pageListUiState.error?.message,
         emptyListTitle = stringResource(R.string.empty_list_title_characters),
         emptyListIcon = Icons.Filled.SearchOff,
         emptyListIconDescription = stringResource(R.string.empty_list_icon_description_characters),
