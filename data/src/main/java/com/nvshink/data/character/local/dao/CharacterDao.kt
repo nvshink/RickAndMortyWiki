@@ -1,5 +1,6 @@
 package com.nvshink.data.character.local.dao
 
+import androidx.paging.PagingSource
 import androidx.room.Dao
 import androidx.room.Query
 import androidx.room.RawQuery
@@ -35,10 +36,13 @@ interface CharacterDao {
     ): Flow<List<CharacterEntity>>
 
     @Query("SELECT * FROM characters ORDER BY id ASC LIMIT :limit OFFSET :offset")
-    fun getCharactersPaging(limit: Int, offset: Int): Flow<List<CharacterEntity>>
-
-    @Query("SELECT * FROM characters ORDER BY id ASC LIMIT :limit OFFSET :offset")
     suspend fun getCharactersPagingList(limit: Int, offset: Int): List<CharacterEntity>
+
+    @Query("SELECT * FROM characters ORDER BY id ASC")
+    fun getPagingSource(): PagingSource<Int, CharacterEntity>
+
+    @Query("SELECT * FROM characters ORDER BY id ASC")
+    suspend fun getCharacters(): List<CharacterEntity>
 
     @Query("SELECT COUNT(*) FROM characters")
     suspend fun getCharactersCount(): Int
@@ -54,4 +58,8 @@ interface CharacterDao {
 
     @Query("DELETE FROM character_remote_keys")
     suspend fun clearRemoteKeys()
+
+    @Query("SELECT COUNT(*) FROM character_remote_keys")
+    fun getCharactersCountFlow(): Flow<Int>
+
 }

@@ -8,6 +8,7 @@ import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
+import androidx.paging.flatMap
 import com.nvshink.data.character.paging.CharacterPagingSource
 import com.nvshink.data.character.network.service.CharacterService
 import com.nvshink.data.generic.local.datasource.DataSourceManager
@@ -43,9 +44,10 @@ import javax.inject.Inject
 @HiltViewModel
 open class CharacterPageListViewModel @Inject constructor(
     private val repository: CharacterRepository,
-    private val characterService: CharacterService,
     private val dataSourceManager: DataSourceManager
 ) : ViewModel() {
+
+    init{ viewModelScope.launch { repository.getCount() } }
 
     private val _refreshTrigger = MutableStateFlow(0)
     private val _isRefreshing = MutableStateFlow(false)
@@ -63,11 +65,11 @@ open class CharacterPageListViewModel @Inject constructor(
     private val _isInitialise = MutableStateFlow(false)
     private val _searchQuery = MutableStateFlow("")
     private val _searchQueryDebounce = _searchQuery.asStateFlow().debounce(1000L)
-    
+
     private val filter = combine(_filter, _searchQueryDebounce) { filter, searchQueryDebounce ->
-        if(_isInitialise.value) {
-            _isRefreshing.update { true }
-        } else {_isInitialise.update { true }}
+//        if(_isInitialise.value) {
+////            _isRefreshing.update { true }
+//        } else {_isInitialise.update { true }}
         filter.copy(name = searchQueryDebounce.ifBlank { null })
     }.stateIn(
         viewModelScope,
@@ -88,21 +90,20 @@ open class CharacterPageListViewModel @Inject constructor(
     ) { filter, trigger, isLocal ->
         Triple(filter, trigger, isLocal)
     }.flatMapLatest { (filter, trigger, isLocal) ->
-        _isRefreshing.update { true }
+//        _isRefreshing.update { true }
         if (isLocal) {
             flow {
-                _isRefreshing.update { false }
+//                _isRefreshing.update { false }
                 emit(PagingData.empty())
             }
         } else {
-            repository.getCharactersStream(filter).also {
-                viewModelScope.launch {
-                    delay(500)
-                    _isRefreshing.update { false }
-                }
+            repository.getCharactersStream(filterModel = filter, coroutineScope = viewModelScope).also {
+//                viewModelScope.launch {
+//                    _isRefreshing.update { false }
+//                }
             }
         }
-    }.cachedIn(viewModelScope)
+    }
 
     fun getCharacters(): Flow<PagingData<CharacterModel>> {
         return _characters
@@ -112,14 +113,12 @@ open class CharacterPageListViewModel @Inject constructor(
 
     val uiState = combine(
         _uiState,
-        _characters,
         _contentType,
-        _isRefreshing
-    ) { uiState, characters, contentType, isRefreshing ->
+//        _isRefreshing
+    ) { uiState, contentType,->
         uiState.copy(
-            characterList = characters,
             contentType = contentType,
-            isRefreshing = _isRefreshing.value
+//            isRefreshing = isRefreshing
         )
     }.stateIn(
         viewModelScope,
@@ -176,12 +175,10 @@ open class CharacterPageListViewModel @Inject constructor(
                     }
                 }
 
-                CharacterPageListEvent.RefreshList -> {
-                    _isRefreshing.update { true }
-                    _refreshTrigger.update { it + 1 }
-                }
+                is CharacterPageListEvent.RefreshList -> event.characters.refresh()
 
                 is CharacterPageListEvent.SetContentType -> _contentType.update { event.contentType }
+
                 is CharacterPageListEvent.SetSearchBarText -> {
                     _uiState.update {
                         it.copy(searchBarText = event.text)
@@ -191,6 +188,8 @@ open class CharacterPageListViewModel @Inject constructor(
                 }
 
                 is CharacterPageListEvent.SetIsLocal -> dataSourceManager.setLocal(event.isLocal)
+
+                is CharacterPageListEvent.RetryPageLoad -> event.characters.retry()
             }
         }
     }

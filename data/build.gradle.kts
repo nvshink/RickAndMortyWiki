@@ -60,6 +60,7 @@ dependencies {
     implementation(libs.androidx.room.ktx)
     implementation(libs.androidx.room.common)
     implementation(libs.androidx.room.runtime)
+    implementation(libs.androidx.room.paging)
     ksp(libs.androidx.room.compiler)
 
     // Ktor
@@ -69,7 +70,7 @@ dependencies {
     implementation(libs.ktor.client.content.negotiation)
 
     // Coil
-    implementation(libs.coil)
+    //implementation(libs.coil)
 
     // Paging
     implementation(libs.androidx.paging.runtime.ktx)

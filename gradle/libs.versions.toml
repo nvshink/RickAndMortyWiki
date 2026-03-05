@@ -16,7 +16,6 @@ jetbrainsKotlinJvm = "2.3.10"
 appcompat = "1.7.1"
 material = "1.5.0-alpha15"
 hiltNavigationCompose = "1.3.0"
-coilCompose = "2.7.0"
 materialIconsExtended = "1.7.8"
 material3WindowSizeClass = "1.4.0"
 material3AdaptiveNavigationSuite = "1.4.0"
@@ -27,7 +26,7 @@ room = "2.8.4"
 roomCommon = "2.8.4"
 hilt-version = "2.59.2"
 ksp-version = "2.3.2"
-coilVersion = "2.7.0"
+coilVersion = "3.4.0"
 ktor = "3.4.0"
 kamel = "1.0.9"
 animationCore = "1.10.4"
@@ -61,13 +60,15 @@ androidx-material3-adaptive-navigation-suite = { group = "androidx.compose.mater
 kotlinx-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "kotlinxCoroutines" }
 kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinxCoroutines" }
 kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinxSerializationJson" }
-coil = { group = "io.coil-kt", name = "coil", version.ref = "coilVersion" }
-coil-compose = { group = "io.coil-kt", name = "coil-compose", version.ref = "coilCompose" }
+#coil = { group = "io.coil-kt.coil3", name = "coil-core", version.ref = "coilVersion" }
+coil-compose = { group = "io.coil-kt.coil3", name = "coil-compose", version.ref = "coilVersion" }
+coil-network-okhttp = { group = "io.coil-kt.coil3", name = "coil-network-okhttp", version.ref = "coilVersion" }
 hilt-android = { group = "com.google.dagger", name = "hilt-android", version.ref = "hilt-version" }
 hilt-compiler = { group = "com.google.dagger", name = "hilt-android-compiler", version.ref = "hilt-version" }
 androidx-room-runtime = { group = "androidx.room", name = "room-runtime", version.ref = "room"}
 androidx-room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "room"}
 androidx-room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "room"}
+androidx-room-paging = { group = "androidx.room", name = "room-paging", version.ref = "room"}
 androidx-room-common = { group = "androidx.room", name = "room-common", version.ref = "roomCommon" }
 androidx-paging-runtime-ktx = { group = "androidx.paging", name = "paging-runtime-ktx", version.ref = "paging" }
 androidx-paging-compose = { group = "androidx.paging", name = "paging-compose", version.ref = "paging" }

@@ -27,7 +27,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import coil.compose.AsyncImage
+import coil3.compose.AsyncImage
 import com.nvshink.domain.character.model.CharacterModel
 import com.nvshink.domain.location.model.LocationModel
 import com.nvshink.rickandmortywiki.R

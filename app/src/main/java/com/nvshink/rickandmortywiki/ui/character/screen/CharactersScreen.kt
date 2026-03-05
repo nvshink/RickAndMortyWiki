@@ -1,12 +1,12 @@
 package com.nvshink.rickandmortywiki.ui.character.screen
 
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.SearchOff
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -16,11 +16,12 @@ import com.nvshink.domain.character.model.CharacterModel
 import com.nvshink.rickandmortywiki.R
 import com.nvshink.rickandmortywiki.ui.character.components.CharacterFilterDialog
 import com.nvshink.rickandmortywiki.ui.character.components.CharacterPageListCardContent
-import com.nvshink.rickandmortywiki.ui.generic.components.topbar.PageListTopBar
 import com.nvshink.rickandmortywiki.ui.character.event.CharacterPageListEvent
 import com.nvshink.rickandmortywiki.ui.character.state.CharacterPageListUiState
+import com.nvshink.rickandmortywiki.ui.generic.components.list.InfinityLazyGrid
 import com.nvshink.rickandmortywiki.ui.generic.components.list.ListOfItems
 import com.nvshink.rickandmortywiki.ui.generic.components.list.ListView
+import com.nvshink.rickandmortywiki.ui.generic.components.topbar.PageListTopBar
 import com.nvshink.rickandmortywiki.ui.utils.CharacterItemScreenRoute
 import com.nvshink.rickandmortywiki.ui.utils.ContentType
 
@@ -41,16 +42,17 @@ fun CharactersScreen(
         detailModifier = detailModifier,
         listView = ListView.Grid,
         listOfItems = characters,
-//        isLoading = pageListUiState::class == CharacterPageListUiState.LoadingState::class,
+        itemIndex = { character ->
+            character?.id
+        },
         isLoading = false,
         isRefreshing = pageListUiState.isRefreshing,
-        onRefresh = { onPageListEvent(CharacterPageListEvent.RefreshList) },
-        onLoadMore = { onPageListEvent(CharacterPageListEvent.LoadMore) },
+        onRefresh = { onPageListEvent(CharacterPageListEvent.RefreshList(characters = characters)) },
+        onRetry = { onPageListEvent(CharacterPageListEvent.RetryPageLoad(characters = characters)) },
         onOffline = { isLocal ->
             onPageListEvent(CharacterPageListEvent.SetIsLocal(isLocal = isLocal))
-            onPageListEvent(CharacterPageListEvent.RefreshList)
+//            onPageListEvent(CharacterPageListEvent.RefreshList)
         },
-//        errorMessage = if (pageListUiState is CharacterPageListUiState.ErrorState) pageListUiState.error?.message else null,
         errorMessage = pageListUiState.error?.message,
         emptyListTitle = stringResource(R.string.empty_list_title_characters),
         emptyListIcon = Icons.Filled.SearchOff,
@@ -97,7 +99,7 @@ fun CharactersScreen(
                 onFilterButton = { onPageListEvent(CharacterPageListEvent.ShowFilterDialog) },
                 onOnlineButton = {
                     onPageListEvent(CharacterPageListEvent.SetIsLocal(false))
-                    onPageListEvent(CharacterPageListEvent.RefreshList)
+//                    onPageListEvent(CharacterPageListEvent.RefreshList)
                 },
                 isLocal = pageListUiState.isLocal
             )

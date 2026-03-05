@@ -1,14 +1,14 @@
 package com.nvshink.rickandmortywiki.ui.generic.components.list
 
+import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.ProgressIndicatorDefaults
 import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
 import androidx.compose.material3.adaptive.layout.AnimatedPane
 import androidx.compose.material3.adaptive.layout.ListDetailPaneScaffoldRole
@@ -16,21 +16,26 @@ import androidx.compose.material3.adaptive.navigation.NavigableListDetailPaneSca
 import androidx.compose.material3.adaptive.navigation.rememberListDetailPaneScaffoldNavigator
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults
-import androidx.compose.material3.pulltorefresh.pullToRefresh
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.paging.compose.LazyPagingItems
-import com.nvshink.rickandmortywiki.ui.generic.components.box.LoadingBox
 import com.nvshink.rickandmortywiki.ui.generic.components.navigation.DynamicNavigation
-import com.nvshink.rickandmortywiki.ui.generic.components.navigation.ScreenTransitions
 import com.nvshink.rickandmortywiki.ui.generic.screens.EmptyItemScreen
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @OptIn(
@@ -44,10 +49,11 @@ fun <T : Any> ListOfItems(
     detailModifier: Modifier = Modifier,
     listView: ListView = ListView.Column,
     listOfItems: LazyPagingItems<T>,
+    itemIndex: (T?) -> Int?,
     isLoading: Boolean,
     isRefreshing: Boolean,
     onRefresh: () -> Unit,
-    onLoadMore: () -> Unit,
+    onRetry: () -> Unit,
     onOffline: (Boolean) -> Unit,
     errorMessage: String?,
     emptyListIcon: ImageVector? = null,
@@ -65,13 +71,40 @@ fun <T : Any> ListOfItems(
 ) {
     val coroutineScope = rememberCoroutineScope()
     val scaffoldNavigator = rememberListDetailPaneScaffoldNavigator<Int>()
-    val state = rememberPullToRefreshState()
+    val pullToRefreshState = rememberPullToRefreshState()
+    val lazyGridState = rememberLazyGridState()
+
+    val willRefresh by remember {
+        derivedStateOf {
+            pullToRefreshState.distanceFraction > 1f
+        }
+    }
+
+    val hapticFeedback = LocalHapticFeedback.current
+    LaunchedEffect(willRefresh) {
+        when {
+            willRefresh -> {
+                hapticFeedback.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                delay(70)
+                hapticFeedback.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                delay(100)
+                hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
+            }
+
+            !isRefreshing && pullToRefreshState.distanceFraction > 0f -> {
+                hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
+            }
+        }
+    }
+
+
     NavigableListDetailPaneScaffold(
         modifier = modifier,
         navigator = scaffoldNavigator,
         listPane = {
             //TODO: the text field is auto focused when it is in AnimatedPane. It's a problem
             AnimatedPane {
+                LocalFocusManager.current.clearFocus()
                 Box {
                     Column(
                         modifier = Modifier
@@ -81,11 +114,12 @@ fun <T : Any> ListOfItems(
                         PullToRefreshBox(
                             isRefreshing = isRefreshing,
                             onRefresh = onRefresh,
-                            state = state,
+                            state = pullToRefreshState,
                             indicator = {
                                 PullToRefreshDefaults.LoadingIndicator(
-                                    state = state,
-                                    isRefreshing = isRefreshing
+                                    state = pullToRefreshState,
+                                    isRefreshing = isRefreshing,
+                                    modifier = Modifier.align(Alignment.TopCenter)
                                 )
                             }
                         )
@@ -101,7 +135,7 @@ fun <T : Any> ListOfItems(
                                                 coroutineScope.launch {
                                                     scaffoldNavigator.navigateTo(
                                                         pane = ListDetailPaneScaffoldRole.Detail,
-                                                        contentKey = listId(item)
+                                                        contentKey = itemIndex(item)
                                                     )
                                                 }
                                             }
@@ -115,14 +149,16 @@ fun <T : Any> ListOfItems(
                                     emptyListIconDescription = emptyListIconDescription,
                                     emptyListTitle = emptyListTitle,
                                     errorMessage = errorMessage,
-                                    onLoadMore = onLoadMore,
+                                    onLoadMore = onRetry,
                                     onRefresh = onRefresh,
                                     onOffline = onOffline
                                 )
 
                                 ListView.Grid -> InfinityLazyGrid(
+                                    state = lazyGridState,
                                     modifier = listModifier,
                                     items = listOfItems,
+                                    itemIndex = itemIndex,
                                     cellsArrangement = listArrangement,
                                     listItem = { item ->
                                         ListItem(
@@ -130,7 +166,7 @@ fun <T : Any> ListOfItems(
                                                 coroutineScope.launch {
                                                     scaffoldNavigator.navigateTo(
                                                         pane = ListDetailPaneScaffoldRole.Detail,
-                                                        contentKey = listId(item)
+                                                        contentKey = itemIndex(item)
                                                     )
                                                 }
                                             }
@@ -139,14 +175,14 @@ fun <T : Any> ListOfItems(
                                         }
                                     },
                                     listTopContent = listTopContent,
-                                    isLoading = isLoading,
                                     emptyListIcon = emptyListIcon,
                                     emptyListIconDescription = emptyListIconDescription,
                                     emptyListTitle = emptyListTitle,
                                     errorMessage = errorMessage,
-                                    onLoadMore = onLoadMore,
+                                    onLoadMore = onRetry,
                                     onRefresh = onRefresh,
-                                    onOffline = onOffline
+                                    onOffline = onOffline,
+                                    pullToRefreshState = pullToRefreshState
                                 )
                             }
                         }

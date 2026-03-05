@@ -32,18 +32,20 @@ class CharacterRemoteMediator(
         val page = when (loadType) {
             LoadType.REFRESH -> {
                 val remoteKeys = getRemoteKeyClosestToCurrentPosition(state)
+                Log.d("REMOTE_MEDIATOR", "Refresh remoteKeys:${remoteKeys}")
                 remoteKeys?.nextKey?.minus(1) ?: 1
             }
             LoadType.PREPEND -> {
                 val remoteKeys = getRemoteKeyForFirstItem(state)
                 val prevKey = remoteKeys?.prevKey
-                    ?: return MediatorResult.Success(endOfPaginationReached = remoteKeys != null)
+                    ?: return MediatorResult.Success(endOfPaginationReached = remoteKeys?.nextKey == null)
                 prevKey
             }
             LoadType.APPEND -> {
                 val remoteKeys = getRemoteKeyForLastItem(state)
+                Log.d("REMOTE_MEDIATOR", "Append remoteKeys:${remoteKeys}")
                 val nextKey = remoteKeys?.nextKey
-                    ?: return MediatorResult.Success(endOfPaginationReached = remoteKeys != null)
+                    ?: return MediatorResult.Success(endOfPaginationReached = true)
                 nextKey
             }
         }
@@ -52,9 +54,6 @@ class CharacterRemoteMediator(
             val response = service.getGetListOfCharactersByPage(page = page)
             val characters = response.results.map { it.toEntity() }
             val endOfPaginationReached = characters.isEmpty() || response.info.next == null
-            Log.d("REMOTE_MEDIATOR", "Loading page: $page")
-            Log.d("REMOTE_MEDIATOR", "Characters count: ${characters.size}")
-            Log.d("REMOTE_MEDIATOR", "First character image: ${characters.firstOrNull()?.image}")
             val prevKey = if (page == 1) null else page - 1
             val nextKey = if (endOfPaginationReached) null else page + 1
 
@@ -65,16 +64,16 @@ class CharacterRemoteMediator(
                     nextKey = nextKey
                 )
             }
-
             database.withTransaction {
                 if (loadType == LoadType.REFRESH) {
+                    Log.d("REMOTE_MEDIATOR", "REFRESH triggered! Clearing database!")
                     dao.clearRemoteKeys()
                     dao.clearCharacters()
                 }
+                Log.d("REMOTE_MEDIATOR", "Upsert to DB!")
                 dao.upsertRemoteKeys(keys)
                 dao.upsertCharacters(characters)
             }
-
             MediatorResult.Success(endOfPaginationReached = endOfPaginationReached)
         } catch (e: Exception) {
             MediatorResult.Error(e)
@@ -95,7 +94,7 @@ class CharacterRemoteMediator(
     ): CharacterRemoteKey? {
         return state.pages.firstOrNull { it.data.isNotEmpty() }?.data?.firstOrNull()
             ?.let { character ->
-                dao.getRemoteKeyByCharacterId(character.id)
+                dao.getRemoteKeyByCharacterId(character.id )
             }
     }
 

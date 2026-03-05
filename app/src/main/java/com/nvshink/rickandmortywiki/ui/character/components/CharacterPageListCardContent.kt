@@ -1,15 +1,14 @@
 package com.nvshink.rickandmortywiki.ui.character.components
 
-import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -18,50 +17,48 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.DefaultAlpha
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import com.nvshink.domain.character.model.CharacterGender
-import com.nvshink.domain.character.model.CharacterLocationModel
+import coil3.compose.AsyncImage
+import coil3.request.ImageRequest
+import coil3.request.crossfade
+import coil3.size.Precision
 import com.nvshink.domain.character.model.CharacterModel
-import com.nvshink.domain.character.model.CharacterStatus
 import com.nvshink.rickandmortywiki.ui.utils.getIcon
 import com.nvshink.rickandmortywiki.ui.utils.getName
-import io.kamel.image.KamelImage
-import io.kamel.image.asyncPainterResource
-import java.time.ZonedDateTime
 
 @Composable
 fun CharacterPageListCardContent(
     character: CharacterModel
 ) {
     val context = LocalContext.current
+
+    val imageRequest = remember(character.id) {
+        ImageRequest.Builder(context)
+            .data(character.image)
+            .crossfade(true)
+            .size(400)
+            .precision(Precision.INEXACT)
+            .build()
+    }
+
     Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .size(150.dp),
-        Alignment.Center
-    )
-    {
-        KamelImage({ asyncPainterResource(data = character.image) },
-            contentDescription = null,
+        modifier = Modifier.fillMaxWidth().height(150.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        AsyncImage(
+            model = imageRequest,
+            contentDescription = character.name,
             modifier = Modifier.fillMaxSize(),
-            alignment = Alignment.Center,
-            contentScale = ContentScale.FillWidth,
-            alpha = DefaultAlpha,
-            colorFilter = null,
-            onLoading = null,
-            onFailure = null,
-            contentAlignment = Alignment.Center,
-            animationSpec = null
+            contentScale = ContentScale.Crop
         )
         Box(
             modifier = Modifier
@@ -74,8 +71,7 @@ fun CharacterPageListCardContent(
             contentAlignment = Alignment.BottomCenter
         ) {
             Column(
-                Modifier
-                    .fillMaxSize(),
+                Modifier.fillMaxSize(),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.SpaceBetween
             ) {
@@ -94,16 +90,19 @@ fun CharacterPageListCardContent(
                         overflow = TextOverflow.Ellipsis
                     )
                 }
-                FlowRow(
+                // Row вместо FlowRow для экономии ресурсов на Layout phase
+                Row(
                     horizontalArrangement = Arrangement.spacedBy(5.dp),
-                    verticalArrangement = Arrangement.spacedBy(5.dp),
-                    itemVerticalAlignment = Alignment.Bottom,
-                    modifier = Modifier.padding(vertical = 8.dp, horizontal = 6.dp)
+                    modifier = Modifier
+                        .padding(vertical = 8.dp, horizontal = 6.dp)
+                        .fillMaxWidth()
                 ) {
                     CardContentTag(
+                        modifier = Modifier.weight(1f, fill = false),
                         text = character.species
                     )
                     CardContentTag(
+                        modifier = Modifier.weight(1f, fill = false),
                         text = character.gender.getName(context = context),
                         additionalContent = { size ->
                             Icon(
@@ -114,6 +113,7 @@ fun CharacterPageListCardContent(
                         }
                     )
                     CardContentTag(
+                        modifier = Modifier.weight(1f, fill = false),
                         text = character.status.getName(context = context),
                         additionalContent = { size ->
                             Icon(
@@ -131,51 +131,31 @@ fun CharacterPageListCardContent(
 
 @Composable
 fun CardContentTag(
+    modifier: Modifier = Modifier,
     backgroundColor: Color = MaterialTheme.colorScheme.surfaceContainer,
     text: String? = null,
     textColor: Color = MaterialTheme.colorScheme.onSurface,
     additionalContent: @Composable ((size: Dp) -> Unit)? = null
 ) {
     Row(
-        modifier = Modifier
+        modifier = modifier
             .background(color = backgroundColor, shape = CircleShape)
             .padding(6.dp)
             .height(16.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         if (text != null) {
-            Text(text = text, color = textColor, style = MaterialTheme.typography.bodySmall)
+            Text(
+                text = text, 
+                color = textColor, 
+                style = MaterialTheme.typography.bodySmall,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
         }
         if (additionalContent != null) {
             Spacer(Modifier.size(4.dp))
             additionalContent(16.dp)
         }
     }
-}
-
-@Preview
-@Composable
-fun CharacterPageListCardContentPreview() {
-    CharacterPageListCardContent(character = CharacterModel(
-        id = 0,
-        name = "Test name",
-        status = CharacterStatus.UNKNOWN,
-        species = "Human",
-        type = "Type",
-        gender = CharacterGender.UNKNOWN,
-        origin = CharacterLocationModel(
-            id = 0,
-            name = "",
-            url = "https://rickandmortyapi.com/api/location/1"
-        ),
-        location = CharacterLocationModel(
-            id = 0,
-            name = "",
-            url = "https://rickandmortyapi.com/api/location/1"
-        ),
-        image = "https://rickandmortyapi.com/api/character/avatar/5.jpeg",
-        episode = emptyList(),
-        url = "",
-        created = ZonedDateTime.now()
-    ))
 }

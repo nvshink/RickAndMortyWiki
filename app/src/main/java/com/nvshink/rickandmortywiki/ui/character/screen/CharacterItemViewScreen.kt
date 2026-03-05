@@ -34,6 +34,7 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import coil3.compose.AsyncImage
 import com.nvshink.domain.character.model.CharacterModel
 import com.nvshink.rickandmortywiki.R
 import com.nvshink.rickandmortywiki.ui.episode.state.EpisodeSmallListUiState
@@ -62,19 +63,10 @@ fun CharacterItemViewScreen(
             Card(
                 elevation = CardDefaults.elevatedCardElevation(10.dp)
             ) {
-                KamelImage({ asyncPainterResource(data = character.image) },
+                AsyncImage(
+                    model = character.image,
                     contentDescription = null,
-                    modifier = Modifier
-                        .clip(MaterialTheme.shapes.large)
-                        .size(200.dp),
-                    alignment = Alignment.Center,
-                    contentScale = ContentScale.Fit,
-                    alpha = DefaultAlpha,
-                    colorFilter = null,
-                    onLoading = null,
-                    onFailure = null,
-                    contentAlignment = Alignment.Center,
-                    animationSpec = null
+                    modifier = Modifier.size(150.dp)
                 )
             }
         }

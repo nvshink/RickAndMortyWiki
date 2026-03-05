@@ -5,11 +5,11 @@ import androidx.paging.ExperimentalPagingApi
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
+import androidx.paging.cachedIn
 import androidx.paging.map
-import androidx.room.RoomDatabase
-import androidx.room.withTransaction
 import androidx.room.RoomRawQuery
 import com.nvshink.data.character.local.dao.CharacterDao
+import com.nvshink.data.character.local.entity.CharacterEntity
 import com.nvshink.data.character.network.response.CharacterResponse
 import com.nvshink.data.character.network.service.CharacterService
 import com.nvshink.data.character.paging.CharacterLocalPagingSource
@@ -26,6 +26,7 @@ import com.nvshink.domain.resource.PageInfoModel
 import com.nvshink.domain.character.repository.CharacterRepository
 import com.nvshink.domain.resource.Resource
 import jakarta.inject.Inject
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
@@ -37,23 +38,34 @@ class CharacterRepositoryImpl @Inject constructor(
     private val database: RickAndMortyWikiDB
 ) : CharacterRepository {
 
+    override suspend fun getCount() {
+        dao.getCharactersCountFlow().collect { count ->
+            Log.d("ROOM", "Count: $count")
+        }
+    }
+
     @OptIn(ExperimentalPagingApi::class)
     override fun getCharactersStream(
-        filterModel: CharacterFilterModel
+        filterModel: CharacterFilterModel,
+        coroutineScope: CoroutineScope
     ): Flow<PagingData<CharacterModel>> {
         return Pager(
             config = PagingConfig(
                 pageSize = 20,
+                initialLoadSize = 20,
                 prefetchDistance = 5,
-                enablePlaceholders = false
+                enablePlaceholders = true
             ),
             remoteMediator = CharacterRemoteMediator(
                 database = database,
                 dao = dao,
                 service = service
             ),
-            pagingSourceFactory = { CharacterLocalPagingSource(dao) }
-        ).flow.map { pagingData -> pagingData.map { entity -> entity.toModel() } }
+            pagingSourceFactory = {
+                Log.d("ROOM", "getCharacters() in Repo")
+                dao.getPagingSource()
+            }
+        ).flow.map { pagingData -> pagingData.map { entity -> entity.toModel() } }.cachedIn(coroutineScope)
     }
     /**
      * Get list of characters and page if data is remote:

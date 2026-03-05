@@ -1,5 +1,6 @@
 package com.nvshink.rickandmortywiki.ui.generic.components.list
 
+import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -35,6 +36,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.paging.LoadState
 import androidx.paging.compose.LazyPagingItems
+import androidx.paging.flatMap
 import com.nvshink.rickandmortywiki.R
 import com.nvshink.rickandmortywiki.ui.generic.components.box.ErrorBox
 import com.nvshink.rickandmortywiki.ui.generic.components.box.LoadingBox
@@ -58,8 +60,7 @@ fun <T : Any> InfinityLazyColumn(
     onRefresh: () -> Unit,
     onOffline: (Boolean) -> Unit
 ) {
-
-    LazyColumn(modifier = Modifier.fillMaxSize()) {
+    LazyColumn(modifier = Modifier.fillMaxSize()) { //TODO (Перевести фичи из грида)
         item {
             listTopContent?.invoke()
         }

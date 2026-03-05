@@ -39,6 +39,11 @@ android {
     }
 }
 
+// Настройка компилятора Compose для использования файла стабильности
+composeCompiler {
+    stabilityConfigurationFile = project.layout.projectDirectory.file("stability_config.conf")
+}
+
 kotlin {
     compilerOptions {
         jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_25
@@ -52,7 +57,6 @@ dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
-    //implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.ui)
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
@@ -66,6 +70,7 @@ dependencies {
 
     //Coil
     implementation(libs.coil.compose)
+    implementation(libs.coil.network.okhttp)
 
     // Hilt
     implementation(libs.hilt.android)
@@ -79,6 +84,10 @@ dependencies {
 
     //Kamel
     implementation(libs.kamel.image)
+
+    // Ktor
+    implementation(libs.ktor.client.okhttp)
+
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
