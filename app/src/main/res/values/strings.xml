@@ -12,6 +12,8 @@
     <string name="empty_list_icon_description_locations">Empty list</string>
     <string name="empty_list_icon_description_episodes">Empty list</string>
     <string name="empty_list_title_characters">We not found the data.</string>
+    <string name="empty_list_title_locations">We not found the data.</string>
+    <string name="empty_list_title_episodes">We not found the data.</string>
     <string name="is_local_data_title">Data from cache</string>
     <string name="searchbar_placeholder_character">Search character by name…</string>
     <string name="searchbar_placeholder_location">Search location by name…</string>

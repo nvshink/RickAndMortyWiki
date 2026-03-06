@@ -24,13 +24,12 @@ import androidx.navigation.compose.rememberNavController
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.nvshink.rickandmortywiki.ui.character.screen.CharactersScreen
 import com.nvshink.rickandmortywiki.ui.character.viewmodel.CharacterPageListViewModel
-import com.nvshink.rickandmortywiki.ui.episode.screen.EpisodeScreen
+import com.nvshink.rickandmortywiki.ui.episode.screen.EpisodesScreen
 import com.nvshink.rickandmortywiki.ui.episode.viewmodel.EpisodePageListViewModel
-import com.nvshink.rickandmortywiki.ui.episode.viewmodel.EpisodeSmallListViewModel
 import com.nvshink.rickandmortywiki.ui.generic.components.navigation.layouts.NavigationBarLayout
 import com.nvshink.rickandmortywiki.ui.generic.components.navigation.layouts.NavigationRailLayout
 import com.nvshink.rickandmortywiki.ui.generic.components.navigation.layouts.PermanentNavigationDrawerLayout
-import com.nvshink.rickandmortywiki.ui.location.screen.LocationScreen
+import com.nvshink.rickandmortywiki.ui.location.screen.LocationsScreen
 import com.nvshink.rickandmortywiki.ui.location.viewmodel.LocationPageListViewModel
 import com.nvshink.rickandmortywiki.ui.utils.CharactersScreenRoute
 import com.nvshink.rickandmortywiki.ui.utils.ContentType
@@ -90,11 +89,14 @@ fun RickAndMortyWikiApp(
                 composable<CharactersScreenRoute> {
                     val characterPageListViewModel: CharacterPageListViewModel = hiltViewModel()
                     val characterListUiState = characterPageListViewModel.uiState.collectAsState().value
+                    val characters = remember(characterPageListViewModel) {
+                        characterPageListViewModel.getCharacters()
+                    }.collectAsLazyPagingItems()
                     CharactersScreen(
                         modifier = Modifier
                             .clip(screensShape),
                         listModifier = Modifier.padding(horizontal = 8.dp),
-                        characters = characterPageListViewModel.getCharacters().collectAsLazyPagingItems(),
+                        characters = characters,
                         pageListUiState = characterListUiState,
                         onPageListEvent = characterPageListViewModel::onEvent,
                         detailModifier = Modifier
@@ -108,43 +110,43 @@ fun RickAndMortyWikiApp(
                 composable<LocationsScreenRoute> {
                     val locationPageListViewModel: LocationPageListViewModel = hiltViewModel()
                     val locationListUiState = locationPageListViewModel.uiState.collectAsState().value
-                    LocationScreen(
+                    val locations = remember(locationPageListViewModel) {
+                        locationPageListViewModel.getLocations()
+                    }.collectAsLazyPagingItems()
+                    LocationsScreen(
                         modifier = Modifier
-                            .clip(
-                                screensShape
-                            ).padding(horizontal = 5.dp)
-                            .background(
-                                MaterialTheme.colorScheme.surfaceContainer
-                            ),
+                            .clip(screensShape),
+                        listModifier = Modifier.padding(horizontal = 8.dp),
+                        locations = locations,
                         pageListUiState = locationListUiState,
                         onPageListEvent = locationPageListViewModel::onEvent,
                         detailModifier = Modifier
-                            .clip(
-                                screensShape
-                            )
-                            .background(MaterialTheme.colorScheme.surface)
+                            .clip(screensShape)
+                            .background(MaterialTheme.colorScheme.surfaceBright)
+                            .padding(horizontal = 8.dp)
                             .fillMaxSize(),
                         contentType = contentType
                     )
                 }
                 composable<EpisodesScreenRoute> {
-                    val episodeViewModel: EpisodePageListViewModel = hiltViewModel()
-                    val episodeUiState = episodeViewModel.uiState.collectAsState().value
-                    EpisodeScreen(
+                    val episodePageListViewModel: EpisodePageListViewModel = hiltViewModel()
+                    val episodeListUiState = episodePageListViewModel.uiState.collectAsState().value
+                    val episodes = remember(episodePageListViewModel) {
+                        episodePageListViewModel.getEpisodes()
+                    }.collectAsLazyPagingItems()
+                    EpisodesScreen(
                         modifier = Modifier
                             .clip(
                                 screensShape
-                            ).padding(horizontal = 5.dp)
-                            .background(
-                                MaterialTheme.colorScheme.surfaceContainer
                             ),
-                        pageListUiState = episodeUiState,
-                        onPageListEvent = episodeViewModel::onEvent,
+                        listModifier = Modifier.padding(horizontal = 8.dp),
+                        episodes = episodes,
+                        pageListUiState = episodeListUiState,
+                        onPageListEvent = episodePageListViewModel::onEvent,
                         detailModifier = Modifier
-                            .clip(
-                                screensShape
-                            )
-                            .background(MaterialTheme.colorScheme.surface)
+                            .clip(screensShape)
+                            .background(MaterialTheme.colorScheme.surfaceBright)
+                            .padding(horizontal = 8.dp)
                             .fillMaxSize(),
                         contentType = contentType
                     )

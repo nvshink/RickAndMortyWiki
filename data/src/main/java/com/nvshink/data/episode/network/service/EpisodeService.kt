@@ -12,11 +12,13 @@ class EpisodeService @Inject constructor(
     private val client: HttpClient
 ){
     private val basePath = "episode/"
-    suspend fun getGetListOfEpisodesByParams(
+    suspend fun getGetListOfEpisodesByPageAndParams(
+        page: Int,
         name: String,
         episode: String
     ): PageResponse<EpisodeResponse> {
         return client.get(urlString = basePath) {
+            parameter("page", page)
             parameter("name", name)
             parameter("episode", episode)
         }.body<PageResponse<EpisodeResponse>>()

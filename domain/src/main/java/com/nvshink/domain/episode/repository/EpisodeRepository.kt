@@ -1,23 +1,19 @@
 package com.nvshink.domain.episode.repository
 
+import androidx.paging.PagingData
 import com.nvshink.domain.character.model.CharacterModel
 import com.nvshink.domain.episode.model.EpisodeFilterModel
 import com.nvshink.domain.episode.model.EpisodeModel
 import com.nvshink.domain.resource.PageInfoModel
 import com.nvshink.domain.resource.Resource
 import com.nvshink.domain.resource.SortTypes
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 
 interface EpisodeRepository {
-    /**
-     * Get list of episodes and page from API:
-     * @param pageInfoModel Current page information.
-     * @param filterModel Defines which fields and values will be filtered by.
-     */
-    suspend fun getEpisodesApi(
-        pageInfoModel: PageInfoModel,
+    fun getEpisodesStream(
         filterModel: EpisodeFilterModel
-    ): Flow<Pair<PageInfoModel, Resource<List<EpisodeModel>>>>
+    ): Flow<PagingData<EpisodeModel>>
 
     /**
      * Get list of episodes by list id from API.

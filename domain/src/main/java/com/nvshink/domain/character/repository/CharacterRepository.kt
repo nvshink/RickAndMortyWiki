@@ -5,22 +5,13 @@ import com.nvshink.domain.character.model.CharacterFilterModel
 import com.nvshink.domain.character.model.CharacterModel
 import com.nvshink.domain.resource.PageInfoModel
 import com.nvshink.domain.resource.Resource
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 
 interface CharacterRepository {
     fun getCharactersStream(
         filterModel: CharacterFilterModel
     ): Flow<PagingData<CharacterModel>>
-
-    /**
-     * Get list of characters and page from API:
-     * @param pageInfoModel Current page information.
-     * @param filterModel Defines which fields and values will be filtered by.
-     */
-    suspend fun getCharactersApi(
-        pageInfoModel: PageInfoModel,
-        filterModel: CharacterFilterModel
-    ): Flow<Pair<PageInfoModel, Resource<List<CharacterModel>>>>
 
     /**
      * Get list of characters by list id from API.
@@ -33,14 +24,6 @@ interface CharacterRepository {
      * @param id Character id numbers.
      */
     suspend fun getCharacterByIdApi(id: Int): Flow<Resource<CharacterModel>>
-
-    /**
-     * Get list of characters from DB:
-     * @param filterModel Defines which fields and values will be filtered by.
-     */
-    suspend fun getCharactersDB(
-        filterModel: CharacterFilterModel
-    ): Flow<Resource<List<CharacterModel>>>
 
     /**
      * Get list of characters by list id from DB.

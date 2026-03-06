@@ -1,68 +1,68 @@
 package com.nvshink.data.location.utils
 
-
 import com.nvshink.data.location.local.entity.LocationEntity
 import com.nvshink.data.location.network.response.LocationResponse
 import com.nvshink.domain.location.model.LocationModel
+import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import java.time.ZonedDateTime
 
-object LocationMapper {
-    fun entityToModel(entity: LocationEntity): LocationModel = LocationModel(
-        id = entity.id,
-        name = entity.name,
-        type = entity.type,
-        dimension = entity.dimension,
-        residents = Json.decodeFromString(entity.residents),
-        url = entity.url,
-        created = ZonedDateTime.parse(entity.created)
-    )
-    fun modelToEntity(model: LocationModel): LocationEntity = LocationEntity(
-        id = model.id,
-        name = model.name,
-        type = model.type,
-        dimension = model.dimension,
-        residents = Json.encodeToString(model.residents),
-        url = model.url,
-        created = model.created.toString()
-    )
+fun LocationEntity.toModel(): LocationModel = LocationModel(
+    id = id,
+    name = name,
+    type = type,
+    dimension = dimension,
+    residents = Json.decodeFromString(residents),
+    url = url,
+    created = ZonedDateTime.parse(created)
+)
 
-    fun responseToModel(response: LocationResponse): LocationModel = LocationModel(
-        id = response.id,
-        name = response.name,
-        type = response.type,
-        dimension = response.dimension,
-        residents = response.residents,
-//        residents = Json.decodeFromString(response.residents),
-        url = response.url,
-        created = ZonedDateTime.parse(response.created)
-    )
-    fun modelToResponse(model: LocationModel): LocationResponse = LocationResponse(
-        id = model.id,
-        name = model.name,
-        type = model.type,
-        dimension = model.dimension,
-        residents = model.residents,
-//        residents = Json.encodeToString(model.residents),
-        url = model.url,
-        created = model.created.toString()
-    )
-    fun entityToResponse(entity: LocationEntity): LocationResponse = LocationResponse(
-        id = entity.id,
-        name = entity.name,
-        type = entity.type,
-        dimension = entity.dimension,
-        residents = Json.decodeFromString(entity.residents),
-        url = entity.url,
-        created = entity.created
-    )
-    fun responseToEntity(response: LocationResponse): LocationEntity = LocationEntity(
-        id = response.id,
-        name = response.name,
-        type = response.type,
-        dimension = response.dimension,
-        residents = Json.encodeToString(response.residents),
-        url = response.url,
-        created = response.created
-    )
-}
+fun LocationModel.toEntity(): LocationEntity = LocationEntity(
+    id = id,
+    name = name,
+    type = type,
+    dimension = dimension,
+    residents = Json.encodeToString(residents),
+    url = url,
+    created = created.toString()
+)
+
+fun LocationResponse.toModel(): LocationModel = LocationModel(
+    id = id,
+    name = name,
+    type = type,
+    dimension = dimension,
+    residents = residents,
+    url = url,
+    created = ZonedDateTime.parse(created)
+)
+
+fun LocationModel.toResponse(): LocationResponse = LocationResponse(
+    id = id,
+    name = name,
+    type = type,
+    dimension = dimension,
+    residents = residents,
+    url = url,
+    created = created.toString()
+)
+
+fun LocationEntity.toResponse(): LocationResponse = LocationResponse(
+    id = id,
+    name = name,
+    type = type,
+    dimension = dimension,
+    residents = Json.decodeFromString(residents),
+    url = url,
+    created = created
+)
+
+fun LocationResponse.toEntity(): LocationEntity = LocationEntity(
+    id = id,
+    name = name,
+    type = type,
+    dimension = dimension,
+    residents = Json.encodeToString(residents),
+    url = url,
+    created = created
+)

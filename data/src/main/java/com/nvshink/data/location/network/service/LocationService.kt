@@ -12,12 +12,14 @@ class LocationService @Inject constructor(
     private val client: HttpClient
 ){
     private val basePath = "location/"
-    suspend fun getGetListOfLocationsByParams(
+    suspend fun getGetListOfLocationsByPageAndParams(
+        page: Int,
         name: String,
         type: String,
         dimension: String,
     ): PageResponse<LocationResponse> {
         return client.get(urlString = basePath) {
+            parameter("page", page)
             parameter("name", name)
             parameter("type", type)
             parameter("dimension", dimension)

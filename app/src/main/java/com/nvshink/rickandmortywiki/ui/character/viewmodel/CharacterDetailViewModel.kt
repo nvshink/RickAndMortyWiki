@@ -1,5 +1,6 @@
 package com.nvshink.rickandmortywiki.ui.character.viewmodel
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nvshink.data.generic.local.datasource.DataSourceManager
@@ -13,7 +14,9 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import javax.inject.Inject
@@ -33,17 +36,20 @@ open class CharacterDetailViewModel @Inject constructor(
     private val _character =
         combine(
             _characterId,
-            _isLocal,
             _reloadCounts
-        ) { characterId, isLocal, _ ->
-            if (!isLocal) {
-                repository.getCharacterByIdApi(characterId)
-            } else {
-                repository.getCharacterByIdDB(characterId)
+        ) { characterId, _ ->
+            Log.d("DATA_LOAD", "VM Character id: $characterId")
+
+            when (val apiResult = repository.getCharacterByIdApi(characterId).first()) {
+                is Resource.Success -> flowOf(apiResult)
+                is Resource.Loading -> flowOf(apiResult)
+                is Resource.Error -> {
+                    repository.getCharacterByIdDB(characterId)
+                }
             }
         }.flatMapLatest { it }.stateIn(
             viewModelScope,
-            SharingStarted.Companion.WhileSubscribed(5000),
+            SharingStarted.WhileSubscribed(5000),
             Resource.Loading
         )
     private val _uiState =
@@ -108,6 +114,7 @@ open class CharacterDetailViewModel @Inject constructor(
             }
         }
     }
+
     private fun reloadCharacter() {
         _reloadCounts.update { it + 1 }
     }

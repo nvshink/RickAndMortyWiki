@@ -1,4 +1,4 @@
-package com.nvshink.data.character.paging
+package com.nvshink.data.episode.paging
 
 import android.util.Log
 import androidx.paging.ExperimentalPagingApi
@@ -6,22 +6,21 @@ import androidx.paging.LoadType
 import androidx.paging.PagingState
 import androidx.paging.RemoteMediator
 import androidx.room.withTransaction
-import com.nvshink.data.character.local.dao.CharacterDao
-import com.nvshink.data.character.local.entity.CharacterEntity
-import com.nvshink.data.character.local.entity.CharacterRemoteKey
-import com.nvshink.data.character.network.service.CharacterService
-import com.nvshink.data.character.utils.toEntity
+import com.nvshink.data.episode.local.dao.EpisodeDao
+import com.nvshink.data.episode.local.entity.EpisodeEntity
+import com.nvshink.data.episode.local.entity.EpisodeRemoteKey
+import com.nvshink.data.episode.network.service.EpisodeService
+import com.nvshink.data.episode.utils.toEntity
 import com.nvshink.data.generic.local.room.RickAndMortyWikiDB
-import com.nvshink.domain.character.model.CharacterFilterModel
-import com.nvshink.domain.character.model.CharacterModel
+import com.nvshink.domain.episode.model.EpisodeFilterModel
 
 @OptIn(ExperimentalPagingApi::class)
-class CharacterRemoteMediator(
+class EpisodeRemoteMediator(
     private val database: RickAndMortyWikiDB,
-    private val dao: CharacterDao,
-    private val service: CharacterService,
-    private val filterModel: CharacterFilterModel
-) : RemoteMediator<Int, CharacterEntity>() {
+    private val dao: EpisodeDao,
+    private val service: EpisodeService,
+    private val filterModel: EpisodeFilterModel
+) : RemoteMediator<Int, EpisodeEntity>() {
 
     override suspend fun initialize(): InitializeAction {
         return InitializeAction.LAUNCH_INITIAL_REFRESH
@@ -29,11 +28,12 @@ class CharacterRemoteMediator(
 
     override suspend fun load(
         loadType: LoadType,
-        state: PagingState<Int, CharacterEntity>
+        state: PagingState<Int, EpisodeEntity>
     ): MediatorResult {
         val page = when (loadType) {
             LoadType.REFRESH -> {
                 val remoteKeys = getRemoteKeyClosestToCurrentPosition(state)
+                Log.d("REMOTE_MEDIATOR", "Refresh remoteKeys:$remoteKeys")
                 remoteKeys?.nextKey?.minus(1) ?: 1
             }
             LoadType.PREPEND -> {
@@ -44,6 +44,7 @@ class CharacterRemoteMediator(
             }
             LoadType.APPEND -> {
                 val remoteKeys = getRemoteKeyForLastItem(state)
+                Log.d("REMOTE_MEDIATOR", "Append remoteKeys:$remoteKeys")
                 val nextKey = remoteKeys?.nextKey
                     ?: return MediatorResult.Success(endOfPaginationReached = true)
                 nextKey
@@ -51,29 +52,32 @@ class CharacterRemoteMediator(
         }
 
         return try {
-            val response = service.getGetListOfCharactersByPageAndParams(
+            val response = service.getGetListOfEpisodesByPageAndParams(
                 page = page,
                 name = filterModel.name ?: "",
-                status = filterModel.status?.name ?: "",
-                species = filterModel.species ?: "",
-                type = filterModel.type ?: "",
-                gender = filterModel.gender?.name ?: "",
+                episode = filterModel.episode ?: "",
             )
-            val characters = response.results.map { it.toEntity() }
-            val endOfPaginationReached = characters.isEmpty() || response.info.next == null
+            val episodes = response.results.map { it.toEntity() }
+            val endOfPaginationReached = episodes.isEmpty() || response.info.next == null
             val prevKey = if (page == 1) null else page - 1
             val nextKey = if (endOfPaginationReached) null else page + 1
 
-            val keys = characters.map { character ->
-                CharacterRemoteKey(
-                    characterId = character.id,
+            val keys = episodes.map { episode ->
+                EpisodeRemoteKey(
+                    episodeId = episode.id,
                     prevKey = prevKey,
                     nextKey = nextKey
                 )
             }
             database.withTransaction {
+                if (loadType == LoadType.REFRESH) {
+                    Log.d("REMOTE_MEDIATOR", "REFRESH triggered! Clearing database!")
+                    dao.clearRemoteKeys()
+                    dao.clearEpisodes()
+                }
+                Log.d("REMOTE_MEDIATOR", "Upsert to DB!")
                 dao.upsertRemoteKeys(keys)
-                dao.upsertCharacters(characters)
+                dao.upsertEpisodes(episodes)
             }
             MediatorResult.Success(endOfPaginationReached = endOfPaginationReached)
         } catch (e: Exception) {
@@ -82,29 +86,29 @@ class CharacterRemoteMediator(
     }
 
     private suspend fun getRemoteKeyForLastItem(
-        state: PagingState<Int, CharacterEntity>
-    ): CharacterRemoteKey? {
+        state: PagingState<Int, EpisodeEntity>
+    ): EpisodeRemoteKey? {
         return state.pages.lastOrNull { it.data.isNotEmpty() }?.data?.lastOrNull()
-            ?.let { character ->
-                dao.getRemoteKeyByCharacterId(character.id)
+            ?.let { episode ->
+                dao.getRemoteKeyByEpisodeId(episode.id)
             }
     }
 
     private suspend fun getRemoteKeyForFirstItem(
-        state: PagingState<Int, CharacterEntity>
-    ): CharacterRemoteKey? {
+        state: PagingState<Int, EpisodeEntity>
+    ): EpisodeRemoteKey? {
         return state.pages.firstOrNull { it.data.isNotEmpty() }?.data?.firstOrNull()
-            ?.let { character ->
-                dao.getRemoteKeyByCharacterId(character.id )
+            ?.let { episode ->
+                dao.getRemoteKeyByEpisodeId(episode.id)
             }
     }
 
     private suspend fun getRemoteKeyClosestToCurrentPosition(
-        state: PagingState<Int, CharacterEntity>
-    ): CharacterRemoteKey? {
+        state: PagingState<Int, EpisodeEntity>
+    ): EpisodeRemoteKey? {
         return state.anchorPosition?.let { position ->
-            state.closestItemToPosition(position)?.id?.let { characterId ->
-                dao.getRemoteKeyByCharacterId(characterId)
+            state.closestItemToPosition(position)?.id?.let { episodeId ->
+                dao.getRemoteKeyByEpisodeId(episodeId)
             }
         }
     }

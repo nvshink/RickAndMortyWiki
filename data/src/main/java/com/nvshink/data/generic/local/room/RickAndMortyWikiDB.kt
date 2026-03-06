@@ -8,16 +8,20 @@ import com.nvshink.data.character.local.entity.CharacterEntity
 import com.nvshink.data.character.local.entity.CharacterRemoteKey
 import com.nvshink.data.episode.local.dao.EpisodeDao
 import com.nvshink.data.episode.local.entity.EpisodeEntity
+import com.nvshink.data.episode.local.entity.EpisodeRemoteKey
 import com.nvshink.data.generic.local.room.utils.Converters
 import com.nvshink.data.location.local.dao.LocationDao
 import com.nvshink.data.location.local.entity.LocationEntity
+import com.nvshink.data.location.local.entity.LocationRemoteKey
 
 @Database(
     entities = [
         CharacterEntity::class, 
         CharacterRemoteKey::class,
-        LocationEntity::class, 
-        EpisodeEntity::class
+        LocationEntity::class,
+        LocationRemoteKey::class,
+        EpisodeEntity::class,
+        EpisodeRemoteKey::class
     ],
     version = 1,
     exportSchema = true

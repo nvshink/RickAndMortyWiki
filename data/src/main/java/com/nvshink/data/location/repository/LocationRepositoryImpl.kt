@@ -1,103 +1,63 @@
 package com.nvshink.data.location.repository
 
 import android.util.Log
+import androidx.paging.ExperimentalPagingApi
+import androidx.paging.Pager
+import androidx.paging.PagingConfig
+import androidx.paging.PagingData
+import androidx.paging.cachedIn
+import androidx.paging.map
 import androidx.room.RoomRawQuery
+import com.nvshink.data.generic.local.room.RickAndMortyWikiDB
 import com.nvshink.data.generic.network.exception.ResourceNotFoundException
 import com.nvshink.data.generic.network.response.PageResponse
 import com.nvshink.data.location.local.dao.LocationDao
 import com.nvshink.data.location.network.response.LocationResponse
 import com.nvshink.data.location.network.service.LocationService
-import com.nvshink.data.location.utils.LocationMapper
+import com.nvshink.data.location.paging.LocationRemoteMediator
+import com.nvshink.data.location.utils.toEntity
+import com.nvshink.data.location.utils.toModel
 import com.nvshink.domain.location.model.LocationFilterModel
 import com.nvshink.domain.location.model.LocationModel
 import com.nvshink.domain.location.repository.LocationRepository
 import com.nvshink.domain.resource.PageInfoModel
 import com.nvshink.domain.resource.Resource
+import jakarta.inject.Inject
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
-import javax.inject.Inject
 import kotlin.collections.map
 import kotlin.coroutines.cancellation.CancellationException
 
 class LocationRepositoryImpl @Inject constructor(
     private val dao: LocationDao,
-    private val service: LocationService
+    private val service: LocationService,
+    private val database: RickAndMortyWikiDB
 ) : LocationRepository {
-    /**
-     * Get list of locations and page if data is remote:
-     * @param pageInfoModel Current page information. If data is from cache it is null.
-     * @param filterModel Defines which fields and values will be filtered by.
-     */
-    override suspend fun getLocationsApi(
-        pageInfoModel: PageInfoModel,
+
+    @OptIn(ExperimentalPagingApi::class)
+    override fun getLocationsStream(
         filterModel: LocationFilterModel
-    ): Flow<Pair<PageInfoModel, Resource<List<LocationModel>>>> = flow {
-        emit(Pair(pageInfoModel, Resource.Loading))
-        try {
-            //If the function is called, but the query is empty, an empty value is returned.
-            var response: PageResponse<LocationResponse>
-            if (pageInfoModel.next != null) {
-                response = service.getGetListOfLocationsByUrl(pageInfoModel.next!!)
-            } else if (pageInfoModel.prev == null) {
-                response = service.getGetListOfLocationsByParams(
-                    name = filterModel.name ?: "",
-                    type = filterModel.type ?: "",
-                    dimension = filterModel.dimension ?: ""
-                )
-            } else {
-                emit(
-                    Pair(
-                        first = pageInfoModel,
-                        second = Resource.Success(
-                            emptyList()
-                        )
-                    )
-                )
-                return@flow
+    ): Flow<PagingData<LocationModel>> {
+        return Pager(
+            config = PagingConfig(
+                pageSize = 20,
+                initialLoadSize = 20,
+                prefetchDistance = 5,
+                enablePlaceholders = true
+            ),
+            remoteMediator = LocationRemoteMediator(
+                database = database,
+                dao = dao,
+                service = service,
+                filterModel = filterModel
+            ),
+            pagingSourceFactory = {
+                dao.getPagingSource()
             }
-
-            //Separate info and result
-            val responseInfo = response.info
-            val responseResult = response.results
-
-            val newPageInfoModel = pageInfoModel.copy(
-                next = responseInfo.next,
-                prev = responseInfo.prev
-            )
-
-            //White result in local DB
-            responseResult.forEach {
-                dao.upsertLocation(LocationMapper.responseToEntity(it))
-            }
-
-            // Return locations
-            emit(
-                Pair(
-                    first = newPageInfoModel,
-                    second = Resource.Success(responseResult.map {
-                        LocationMapper.responseToModel(it)
-                    }
-                    )
-                )
-            )
-        } catch (resourceNotFound: ResourceNotFoundException) {
-            Log.d("DATA_LOAD", "Locations error: ${resourceNotFound.message}")
-            emit(
-                Pair(
-                    first = pageInfoModel,
-                    second = Resource.Success(
-                        emptyList()
-                    )
-                )
-            )
-        } catch (ce: CancellationException) {
-            throw ce
-        } catch (e: Exception) {
-            Log.d("DATA_LOAD", "Location db error: ${e.message}")
-            emit(Pair(pageInfoModel,Resource.Error(e)))
-        }
+        ).flow.map { pagingData -> pagingData.map { entity -> entity.toModel() } }
     }
+
 
     /**
      * Get list of locations by list id.
@@ -111,10 +71,10 @@ class LocationRepositoryImpl @Inject constructor(
                 ids.forEach { id -> path += "$id," }
                 val response = service.getGetListOfLocationsByPath(path)
                 response.forEach {
-                    dao.upsertLocation(LocationMapper.responseToEntity(it))
+                    dao.upsertLocation(it.toEntity())
                 }
                 emit(Resource.Success(response.map {
-                    LocationMapper.responseToModel(it)
+                    it.toModel()
                 }))
             } catch (ce: CancellationException) {
                 throw ce
@@ -134,10 +94,10 @@ class LocationRepositoryImpl @Inject constructor(
         emit(Resource.Loading)
         try {
             val response = service.getGetLocationById(id)
-            dao.upsertLocation(LocationMapper.responseToEntity(response))
+            dao.upsertLocation(response.toEntity())
             emit(
                 Resource.Success(
-                    (LocationMapper.responseToModel(response))
+                    response.toModel()
                 )
             )
         } catch (ce: CancellationException) {
@@ -170,7 +130,7 @@ class LocationRepositoryImpl @Inject constructor(
                 )
             ).map {
                 it.map { locationEntity ->
-                    LocationMapper.entityToModel(locationEntity)
+                    locationEntity.toModel()
                 }
             }.collect { locations ->
                 emit(
@@ -192,7 +152,7 @@ class LocationRepositoryImpl @Inject constructor(
             emit(Resource.Loading)
             try {
                 dao.getLocationsByIds(ids).map { locations ->
-                    locations.map { LocationMapper.entityToModel(entity = it) }
+                    locations.map { it.toModel() }
                 }.collect {
                     emit(
                         Resource.Success(
@@ -213,7 +173,7 @@ class LocationRepositoryImpl @Inject constructor(
             dao.getLocationById(id).collect { cachedEntity ->
                 emit(
                     Resource.Success(
-                        data = LocationMapper.entityToModel(cachedEntity)
+                        data = cachedEntity.toModel()
                     )
                 )
             }
@@ -225,6 +185,7 @@ class LocationRepositoryImpl @Inject constructor(
             emit(Resource.Error(exception = dbException))
         }
     }
+
     private fun sqlLocationQueryBuilder(
         name: String?,
         type: String?,

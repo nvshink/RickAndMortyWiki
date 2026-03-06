@@ -34,9 +34,6 @@ fun CharacterFilterDialog(
                     characterPageListUiState.filter
                 )
             )
-            onCharacterListEvent(
-                CharacterPageListEvent.RefreshList
-            )
             onCharacterListEvent(CharacterPageListEvent.HideFilterDialog)
         },
         contentType = contentType,

@@ -90,7 +90,6 @@ fun CharacterPageListCardContent(
                         overflow = TextOverflow.Ellipsis
                     )
                 }
-                // Row вместо FlowRow для экономии ресурсов на Layout phase
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(5.dp),
                     modifier = Modifier

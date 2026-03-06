@@ -37,19 +37,17 @@ fun PageListTopBar(
     placeholder: String,
     onQueryChange: (String) -> Unit,
     onSearch: (String) -> Unit,
-    onFilterButton: (() -> Unit)? = null,
-    onOnlineButton: (() -> Unit),
-    isLocal: Boolean
+    onFilterButton: (() -> Unit)? = null
 ) {
     Column(
         verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
         Row(
-            verticalAlignment = Alignment.Companion.CenterVertically,
+            verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(15.dp)
         ) {
             SearchBar(
-                modifier = Modifier.Companion.weight(1f),
+                modifier = Modifier.weight(1f),
                 inputField = {
                     SearchBarDefaults.InputField(
                         modifier = Modifier.Companion,
@@ -74,41 +72,6 @@ fun PageListTopBar(
                         imageVector = Icons.Default.FilterList,
                         contentDescription = null
                     )
-                }
-            }
-        }
-        if (isLocal) {
-            Box(
-                modifier = Modifier.Companion
-                    .fillMaxWidth()
-                    .background(
-                        MaterialTheme.colorScheme.secondaryContainer,
-                        shape = MaterialTheme.shapes.small
-                    ),
-                contentAlignment = Alignment.Companion.Center
-            ) {
-                Row(
-                    verticalAlignment = Alignment.Companion.CenterVertically,
-                    horizontalArrangement = Arrangement.Center
-                ) {
-                    Text(
-                        text = stringResource(R.string.is_local_data_title),
-                        modifier = Modifier.Companion
-                            .clip(
-                                MaterialTheme.shapes.extraLarge
-                            )
-                            .padding(5.dp),
-                        color = MaterialTheme.colorScheme.onSecondaryContainer,
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                    Spacer(Modifier.Companion.size(10.dp))
-                    TextButton(onClick = onOnlineButton
-                    ) {
-                        Text(
-                            text = stringResource(R.string.button_offline_turn_off),
-                            color = MaterialTheme.colorScheme.onSecondaryContainer
-                        )
-                    }
                 }
             }
         }

@@ -1,11 +1,20 @@
 package com.nvshink.data.episode.repository
 
 import android.util.Log
+import androidx.paging.ExperimentalPagingApi
+import androidx.paging.Pager
+import androidx.paging.PagingConfig
+import androidx.paging.PagingData
+import androidx.paging.cachedIn
+import androidx.paging.map
 import androidx.room.RoomRawQuery
 import com.nvshink.data.episode.local.dao.EpisodeDao
 import com.nvshink.data.episode.network.response.EpisodeResponse
 import com.nvshink.data.episode.network.service.EpisodeService
-import com.nvshink.data.episode.utils.EpisodeMapper
+import com.nvshink.data.episode.paging.EpisodeRemoteMediator
+import com.nvshink.data.episode.utils.toEntity
+import com.nvshink.data.episode.utils.toModel
+import com.nvshink.data.generic.local.room.RickAndMortyWikiDB
 import com.nvshink.data.generic.network.exception.ResourceNotFoundException
 import com.nvshink.data.generic.network.response.PageResponse
 import com.nvshink.domain.episode.model.EpisodeFilterModel
@@ -14,6 +23,7 @@ import com.nvshink.domain.resource.PageInfoModel
 import com.nvshink.domain.episode.repository.EpisodeRepository
 import com.nvshink.domain.resource.Resource
 import jakarta.inject.Inject
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
@@ -22,81 +32,31 @@ import kotlin.coroutines.cancellation.CancellationException
 
 class EpisodeRepositoryImpl @Inject constructor(
     private val dao: EpisodeDao,
-    private val service: EpisodeService
+    private val service: EpisodeService,
+    private val database: RickAndMortyWikiDB
 ) : EpisodeRepository {
-    /**
-     * Get list of episodes and page if data is remote:
-     * @param pageInfoModel Current page information. If data is from cache it is null.
-     * @param filterModel Defines which fields and values will be filtered by.
-     */
-    override suspend fun getEpisodesApi(
-        pageInfoModel: PageInfoModel,
+
+    @OptIn(ExperimentalPagingApi::class)
+    override fun getEpisodesStream(
         filterModel: EpisodeFilterModel
-    ): Flow<Pair<PageInfoModel, Resource<List<EpisodeModel>>>> = flow {
-        emit(Pair(pageInfoModel, Resource.Loading))
-        try {
-            //If the function is called, but the query is empty, an empty value is returned.
-            var response: PageResponse<EpisodeResponse>
-            if (pageInfoModel.next != null) {
-                response = service.getGetListOfEpisodesByUrl(pageInfoModel.next!!)
-            } else if (pageInfoModel.prev == null) {
-                response = service.getGetListOfEpisodesByParams(
-                    name = filterModel.name ?: "",
-                    episode = filterModel.episode ?: ""
-                )
-            } else {
-                emit(
-                    Pair(
-                        first = pageInfoModel,
-                        second = Resource.Success(
-                            emptyList()
-                        )
-                    )
-                )
-                return@flow
+    ): Flow<PagingData<EpisodeModel>> {
+        return Pager(
+            config = PagingConfig(
+                pageSize = 20,
+                initialLoadSize = 20,
+                prefetchDistance = 5,
+                enablePlaceholders = true
+            ),
+            remoteMediator = EpisodeRemoteMediator(
+                database = database,
+                dao = dao,
+                service = service,
+                filterModel = filterModel
+            ),
+            pagingSourceFactory = {
+                dao.getPagingSource()
             }
-
-            //Separate info and result
-            val responseInfo = response.info
-            val responseResult = response.results
-
-            val newEpisodePageInfoModel = PageInfoModel(
-                next = responseInfo.next,
-                prev = responseInfo.prev
-            )
-
-
-            //White result in local DB
-            responseResult.forEach {
-                dao.upsertEpisode(EpisodeMapper.responseToEntity(it))
-            }
-
-            // Return episodes
-            emit(
-                Pair(
-                    first = newEpisodePageInfoModel,
-                    second = Resource.Success(responseResult.map {
-                        EpisodeMapper.responseToModel(it)
-                    }
-                    )
-                )
-            )
-        } catch (ce: CancellationException) {
-            throw ce
-        } catch (resourceNotFound: ResourceNotFoundException) {
-            Log.d("DATA_LOAD", "Episodes error: ${resourceNotFound.message}")
-            emit(
-                Pair(
-                    first = pageInfoModel,
-                    second = Resource.Success(
-                        emptyList()
-                    )
-                )
-            )
-        } catch (e: Exception) {
-            Log.d("DATA_LOAD", "Episodes error: ${e.message}")
-            emit(Pair(pageInfoModel, Resource.Error(exception = e)))
-        }
+        ).flow.map { pagingData -> pagingData.map { entity -> entity.toModel() } }
     }
 
     /**
@@ -111,10 +71,10 @@ class EpisodeRepositoryImpl @Inject constructor(
                 ids.forEach { id -> path += "$id," }
                 val response = service.getGetListOfEpisodesByPath(path)
                 response.forEach {
-                    dao.upsertEpisode(EpisodeMapper.responseToEntity(it))
+                    dao.upsertEpisode(it.toEntity())
                 }
                 emit(Resource.Success(response.map {
-                    EpisodeMapper.responseToModel(it)
+                    it.toModel()
                 }))
             } catch (ce: CancellationException) {
                 throw ce
@@ -139,10 +99,10 @@ class EpisodeRepositoryImpl @Inject constructor(
         emit(Resource.Loading)
         try {
             val response = service.getGetEpisodeById(id)
-            dao.upsertEpisode(EpisodeMapper.responseToEntity(response))
+            dao.upsertEpisode(response.toEntity())
             emit(
                 Resource.Success(
-                    (EpisodeMapper.responseToModel(response))
+                    (response.toModel())
                 )
             )
         } catch (ce: CancellationException) {
@@ -173,7 +133,7 @@ class EpisodeRepositoryImpl @Inject constructor(
                 )
             ).map {
                 it.map { episodeEntity ->
-                    EpisodeMapper.entityToModel(episodeEntity)
+                    episodeEntity.toModel()
                 }
             }.collect { episodes ->
                 emit(
@@ -195,7 +155,7 @@ class EpisodeRepositoryImpl @Inject constructor(
             emit(Resource.Loading)
             try {
                 dao.getEpisodesByIds(ids).map { episodes ->
-                    episodes.map { EpisodeMapper.entityToModel(entity = it) }
+                    episodes.map { it.toModel() }
                 }.collect {
                     emit(
                         Resource.Success(
@@ -216,7 +176,7 @@ class EpisodeRepositoryImpl @Inject constructor(
             dao.getEpisodesById(id).collect { cachedEntity ->
                 emit(
                     Resource.Success(
-                        data = EpisodeMapper.entityToModel(cachedEntity)
+                        data = cachedEntity.toModel()
                     )
                 )
             }

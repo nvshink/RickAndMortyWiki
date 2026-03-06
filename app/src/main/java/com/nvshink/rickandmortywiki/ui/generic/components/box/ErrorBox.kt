@@ -19,7 +19,7 @@ import androidx.compose.ui.unit.dp
 import com.nvshink.rickandmortywiki.R
 
 @Composable
-fun ErrorBox (errorMessage: String, onRetryClick: () -> Unit, onOfflineClick: ((Boolean) -> Unit)? = null) {
+fun ErrorBox (errorMessage: String, onRetryClick: () -> Unit) {
     Box(modifier = Modifier
         .fillMaxWidth()
         .padding(16.dp), contentAlignment = Alignment.Center) {
@@ -29,11 +29,6 @@ fun ErrorBox (errorMessage: String, onRetryClick: () -> Unit, onOfflineClick: ((
             Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
                 Button(onClick = onRetryClick) {
                     Text(stringResource(R.string.button_retry))
-                }
-                if (onOfflineClick != null) {
-                    TextButton(onClick = { onOfflineClick(true) }) {
-                        Text(stringResource(R.string.button_offline_turn_on))
-                    }
                 }
             }
         }

@@ -12,7 +12,8 @@ class CharacterService @Inject constructor(
     private val client: HttpClient
 ){
     private val basePath = "character/"
-    suspend fun getGetListOfCharactersByParams(
+    suspend fun getGetListOfCharactersByPageAndParams(
+        page: Int,
         name: String,
         status: String,
         species: String,
@@ -20,20 +21,13 @@ class CharacterService @Inject constructor(
         gender: String
     ): PageResponse<CharacterResponse> {
         return client.get(urlString = basePath) {
+                parameter("page", page)
                 parameter("name", name)
                 parameter("status", status)
                 parameter("species", species)
                 parameter("type", type)
                 parameter("gender", gender)
             }.body<PageResponse<CharacterResponse>>()
-    }
-
-    suspend fun getGetListOfCharactersByPage(
-        page: Int,
-    ): PageResponse<CharacterResponse> {
-        return client.get(urlString = basePath) {
-            parameter("page", page)
-        }.body<PageResponse<CharacterResponse>>()
     }
 
     suspend fun getGetListOfCharactersByUrl(url: String): PageResponse<CharacterResponse> {

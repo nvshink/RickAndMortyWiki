@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
@@ -50,12 +51,9 @@ fun <T : Any> ListOfItems(
     listView: ListView = ListView.Column,
     listOfItems: LazyPagingItems<T>,
     itemIndex: (T?) -> Int?,
-    isLoading: Boolean,
     isRefreshing: Boolean,
     onRefresh: () -> Unit,
     onRetry: () -> Unit,
-    onOffline: (Boolean) -> Unit,
-    errorMessage: String?,
     emptyListIcon: ImageVector? = null,
     emptyListIconDescription: String = "",
     emptyListTitle: String? = "",
@@ -66,13 +64,11 @@ fun <T : Any> ListOfItems(
     fab: (@Composable (Modifier) -> Unit)?,
     listItem: @Composable (T) -> Unit,
     listItemRoute: (Int) -> Any,
-    listId: (T) -> Int,
     listTopContent: @Composable () -> Unit = @Composable {}
 ) {
     val coroutineScope = rememberCoroutineScope()
     val scaffoldNavigator = rememberListDetailPaneScaffoldNavigator<Int>()
     val pullToRefreshState = rememberPullToRefreshState()
-    val lazyGridState = rememberLazyGridState()
 
     val willRefresh by remember {
         derivedStateOf {
@@ -125,65 +121,69 @@ fun <T : Any> ListOfItems(
                         )
                         {
                             when (listView) {
-                                ListView.Column -> InfinityLazyColumn(
-                                    modifier = listModifier,
-                                    items = listOfItems,
-                                    contentArrangement = listArrangement,
-                                    listItem = { item ->
-                                        ListItem(
-                                            onCardClick = {
-                                                coroutineScope.launch {
-                                                    scaffoldNavigator.navigateTo(
-                                                        pane = ListDetailPaneScaffoldRole.Detail,
-                                                        contentKey = itemIndex(item)
-                                                    )
+                                ListView.Column -> {
+                                    val lazyListState = rememberLazyListState()
+                                    InfinityLazyColumn(
+                                        state = lazyListState,
+                                        modifier = listModifier,
+                                        items = listOfItems,
+                                        itemIndex = itemIndex,
+                                        contentArrangement = listArrangement,
+                                        listItem = { item ->
+                                            ListItem(
+                                                onCardClick = {
+                                                    coroutineScope.launch {
+                                                        scaffoldNavigator.navigateTo(
+                                                            pane = ListDetailPaneScaffoldRole.Detail,
+                                                            contentKey = itemIndex(item)
+                                                        )
+                                                    }
                                                 }
+                                            ) {
+                                                listItem(item)
                                             }
-                                        ) {
-                                            listItem(item)
-                                        }
-                                    },
-                                    listTopContent = listTopContent,
-                                    isLoading = isLoading,
-                                    emptyListIcon = emptyListIcon,
-                                    emptyListIconDescription = emptyListIconDescription,
-                                    emptyListTitle = emptyListTitle,
-                                    errorMessage = errorMessage,
-                                    onLoadMore = onRetry,
-                                    onRefresh = onRefresh,
-                                    onOffline = onOffline
-                                )
+                                        },
+                                        listTopContent = listTopContent,
+                                        emptyListIcon = emptyListIcon,
+                                        emptyListIconDescription = emptyListIconDescription,
+                                        emptyListTitle = emptyListTitle,
+                                        onLoadMore = onRetry,
+                                        onRefresh = onRefresh,
+                                        pullToRefreshState = pullToRefreshState
+                                    )
+                                }
 
-                                ListView.Grid -> InfinityLazyGrid(
-                                    state = lazyGridState,
-                                    modifier = listModifier,
-                                    items = listOfItems,
-                                    itemIndex = itemIndex,
-                                    cellsArrangement = listArrangement,
-                                    listItem = { item ->
-                                        ListItem(
-                                            onCardClick = {
-                                                coroutineScope.launch {
-                                                    scaffoldNavigator.navigateTo(
-                                                        pane = ListDetailPaneScaffoldRole.Detail,
-                                                        contentKey = itemIndex(item)
-                                                    )
+                                ListView.Grid -> {
+                                    val lazyGridState = rememberLazyGridState()
+                                    InfinityLazyGrid(
+                                        state = lazyGridState,
+                                        modifier = listModifier,
+                                        items = listOfItems,
+                                        itemIndex = itemIndex,
+                                        cellsArrangement = listArrangement,
+                                        listItem = { item ->
+                                            ListItem(
+                                                onCardClick = {
+                                                    coroutineScope.launch {
+                                                        scaffoldNavigator.navigateTo(
+                                                            pane = ListDetailPaneScaffoldRole.Detail,
+                                                            contentKey = itemIndex(item)
+                                                        )
+                                                    }
                                                 }
+                                            ) {
+                                                listItem(item)
                                             }
-                                        ) {
-                                            listItem(item)
-                                        }
-                                    },
-                                    listTopContent = listTopContent,
-                                    emptyListIcon = emptyListIcon,
-                                    emptyListIconDescription = emptyListIconDescription,
-                                    emptyListTitle = emptyListTitle,
-                                    errorMessage = errorMessage,
-                                    onLoadMore = onRetry,
-                                    onRefresh = onRefresh,
-                                    onOffline = onOffline,
-                                    pullToRefreshState = pullToRefreshState
-                                )
+                                        },
+                                        listTopContent = listTopContent,
+                                        emptyListIcon = emptyListIcon,
+                                        emptyListIconDescription = emptyListIconDescription,
+                                        emptyListTitle = emptyListTitle,
+                                        onLoadMore = onRetry,
+                                        onRefresh = onRefresh,
+                                        pullToRefreshState = pullToRefreshState
+                                    )
+                                }
                             }
                         }
                     }

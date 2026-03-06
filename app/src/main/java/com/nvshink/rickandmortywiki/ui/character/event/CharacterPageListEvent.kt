@@ -13,7 +13,6 @@ sealed interface CharacterPageListEvent {
     data class SetFilter(val filter: CharacterFilterModel) : CharacterPageListEvent
     data class SetUiStateFilter(val filter: CharacterFilterModel) : CharacterPageListEvent
     data object ClearFilterUi : CharacterPageListEvent
-    data object LoadMore : CharacterPageListEvent
     data class SetContentType(val contentType: ContentType) : CharacterPageListEvent
     data class SetSearchBarText(val text: String) : CharacterPageListEvent
     data class SetIsLocal(val isLocal: Boolean) : CharacterPageListEvent

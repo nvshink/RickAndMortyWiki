@@ -11,6 +11,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.paging.LoadState
 import androidx.paging.compose.LazyPagingItems
 import com.nvshink.domain.character.model.CharacterModel
 import com.nvshink.rickandmortywiki.R
@@ -45,15 +46,9 @@ fun CharactersScreen(
         itemIndex = { character ->
             character?.id
         },
-        isLoading = false,
-        isRefreshing = pageListUiState.isRefreshing,
+        isRefreshing = characters.loadState.refresh is LoadState.Loading,
         onRefresh = { onPageListEvent(CharacterPageListEvent.RefreshList(characters = characters)) },
         onRetry = { onPageListEvent(CharacterPageListEvent.RetryPageLoad(characters = characters)) },
-        onOffline = { isLocal ->
-            onPageListEvent(CharacterPageListEvent.SetIsLocal(isLocal = isLocal))
-//            onPageListEvent(CharacterPageListEvent.RefreshList)
-        },
-        errorMessage = pageListUiState.error?.message,
         emptyListTitle = stringResource(R.string.empty_list_title_characters),
         emptyListIcon = Icons.Filled.SearchOff,
         emptyListIconDescription = stringResource(R.string.empty_list_icon_description_characters),
@@ -67,9 +62,6 @@ fun CharactersScreen(
         },
         listItemRoute = { characterId ->
             CharacterItemScreenRoute(characterId)
-        },
-        listId = { character ->
-            character.id
         },
         listTopContent = {
             PageListTopBar(
@@ -97,11 +89,6 @@ fun CharactersScreen(
                     )
                 },
                 onFilterButton = { onPageListEvent(CharacterPageListEvent.ShowFilterDialog) },
-                onOnlineButton = {
-                    onPageListEvent(CharacterPageListEvent.SetIsLocal(false))
-//                    onPageListEvent(CharacterPageListEvent.RefreshList)
-                },
-                isLocal = pageListUiState.isLocal
             )
         }
     )

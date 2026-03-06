@@ -1,5 +1,6 @@
 package com.nvshink.data.location.local.dao
 
+import androidx.paging.PagingSource
 import androidx.room.Dao
 import androidx.room.Query
 import androidx.room.RawQuery
@@ -8,16 +9,23 @@ import androidx.room.Upsert
 import com.nvshink.data.character.local.entity.CharacterEntity
 import com.nvshink.data.episode.local.entity.EpisodeEntity
 import com.nvshink.data.location.local.entity.LocationEntity
+import com.nvshink.data.location.local.entity.LocationRemoteKey
 import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface LocationDao {
 
-    /**
-     * Save new and update existing location
-     */
     @Upsert
     suspend fun upsertLocation(locationEntity: LocationEntity)
+
+    @Upsert
+    suspend fun upsertLocations(locationEntities: List<LocationEntity>)
+
+    @Query("SELECT * FROM locations ORDER BY id ASC")
+    fun getPagingSource(): PagingSource<Int, LocationEntity>
+
+    @Query("SELECT COUNT(*) FROM location_remote_keys")
+    fun getLocationsCountFlow(): Flow<Int>
 
     /**
      * Return list of locations to the entered conditions
@@ -36,4 +44,16 @@ interface LocationDao {
     fun getLocationsByIds(
         ids: List<Int>
     ): Flow<List<LocationEntity>>
+
+    @Upsert
+    suspend fun upsertRemoteKeys(remoteKeys: List<LocationRemoteKey>)
+
+    @Query("SELECT * FROM location_remote_keys WHERE locationId = :locationId")
+    fun getRemoteKeyByLocationId(locationId: Int): LocationRemoteKey?
+
+    @Query("DELETE FROM location_remote_keys")
+    suspend fun clearRemoteKeys()
+
+    @Query("DELETE FROM locations")
+    suspend fun clearLocations()
 }

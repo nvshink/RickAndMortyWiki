@@ -1,234 +1,147 @@
 package com.nvshink.rickandmortywiki.ui.generic.components.list
 
-import android.util.Log
-import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.animateIntAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
-import androidx.compose.foundation.lazy.grid.itemsIndexed
-import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowUpward
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.IconButtonDefaults
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
+import androidx.compose.material3.pulltorefresh.PullToRefreshState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.paging.LoadState
 import androidx.paging.compose.LazyPagingItems
-import androidx.paging.flatMap
-import com.nvshink.rickandmortywiki.R
+import androidx.paging.compose.itemKey
+import com.nvshink.data.generic.network.exception.ResourceNotFoundException
 import com.nvshink.rickandmortywiki.ui.generic.components.box.ErrorBox
 import com.nvshink.rickandmortywiki.ui.generic.components.box.LoadingBox
 import com.nvshink.rickandmortywiki.ui.generic.screens.EmptyItemScreen
-import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.launch
+import com.nvshink.rickandmortywiki.ui.generic.screens.ItemErrorScreen
+import kotlin.math.roundToInt
 
 @Composable
 fun <T : Any> InfinityLazyColumn(
+    state: LazyListState,
     modifier: Modifier = Modifier,
     items: LazyPagingItems<T>,
-    contentArrangement: Dp,
+    itemIndex: (T?) -> Int?,
+    contentArrangement: Dp = 5.dp,
     listItem: @Composable (T) -> Unit,
     listTopContent: (@Composable () -> Unit)? = null,
-    isLoading: Boolean,
     emptyListIcon: ImageVector? = null,
     emptyListIconDescription: String = "",
     emptyListTitle: String? = "",
-    errorMessage: String?,
-    onLoadMore: () -> Unit,
-    onRefresh: () -> Unit,
-    onOffline: (Boolean) -> Unit
+    onLoadMore: () -> Unit = {},
+    onRefresh: () -> Unit = {},
+    pullToRefreshState: PullToRefreshState
 ) {
-    LazyColumn(modifier = Modifier.fillMaxSize()) { //TODO (Перевести фичи из грида)
-        item {
+    val density = LocalDensity.current
+
+    val targetOffset by remember {
+        derivedStateOf {
+            val fraction = pullToRefreshState.distanceFraction
+            when {
+                fraction in 0f..1f -> (250 * fraction).roundToInt()
+                fraction > 1f -> (250 + ((fraction - 1f) * .1f) * 100).roundToInt()
+                else -> 0
+            }
+        }
+    }
+
+    val cardOffset by animateIntAsState(
+        targetValue = targetOffset,
+        label = "cardOffset"
+    )
+    LazyColumn(
+        state = state,
+        modifier = modifier,
+        verticalArrangement = Arrangement.spacedBy(contentArrangement)
+    ) {
+        item(key = "top_content") {
             listTopContent?.invoke()
         }
         items(
             count = items.itemCount,
+            key = items.itemKey { item -> itemIndex(item) ?: item.hashCode() }
         ) { index ->
-            val item = items[index] // Получаем элемент по индексу
-            item?.let { listItem(item) }
+            val item = items[index]
+            val yFactor1 = (index + 2) / 20f
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .graphicsLayer {
+                        translationY =
+                            (cardOffset * yFactor1) * density.density
+                    }
+            ) { key(itemIndex(item)) { item?.let { listItem(item) } } }
         }
 
         when {
             items.loadState.refresh is LoadState.Loading -> {
-                item {
+                item(key = "loading_refresh") {
                     Box(
                         modifier = Modifier.fillParentMaxSize(),
                         contentAlignment = Alignment.Center
                     ) {
-                        CircularProgressIndicator()
+                        LoadingBox()
                     }
                 }
             }
+
             items.loadState.refresh is LoadState.Error -> {
-                item {
+                item(key = "error_refresh") {
                     val e = items.loadState.refresh as LoadState.Error
-                    Text(
-                        "Ошибка загрузки: ${e.error.localizedMessage}",
-                        modifier = Modifier.padding(16.dp)
-                    )
+                    if (e.error is ResourceNotFoundException) {
+                        EmptyItemScreen(
+                            title = emptyListTitle,
+                            icon = emptyListIcon,
+                            iconDescription = emptyListIconDescription,
+                            onRefresh = onRefresh
+                        )
+                    } else {
+                        ItemErrorScreen(
+                            modifier = Modifier.fillMaxSize(),
+                            errorMessage = e.error.localizedMessage ?: "",
+                            onClick = onRefresh
+                        )
+                    }
                 }
             }
+
             items.loadState.append is LoadState.Loading -> {
-                item {
+                item(key = "loading_append") {
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(16.dp),
                         contentAlignment = Alignment.Center
                     ) {
-                        CircularProgressIndicator()
+                        LoadingBox()
                     }
                 }
             }
+
             items.loadState.append is LoadState.Error -> {
-                item {
+                item(key = "error_append") {
                     val e = items.loadState.append as LoadState.Error
-                    Text(
-                        "Ошибка подгрузки: ${e.error.localizedMessage}",
-                        modifier = Modifier.padding(16.dp)
+                    ErrorBox(
+                        errorMessage = e.error.localizedMessage ?: "",
+                        onRetryClick = onLoadMore
                     )
                 }
             }
-        }
-    }
-
-//    val lazyListState = rememberLazyListState()
-//    val coroutineScope = rememberCoroutineScope()
-//    Box(modifier = modifier) {
-//        LazyColumn(
-//            modifier = Modifier
-//                .fillMaxWidth(),
-//            state = lazyListState,
-//            horizontalAlignment = Alignment.CenterHorizontally,
-//            verticalArrangement = Arrangement.spacedBy(contentArrangement)
-//        ) {
-//            if (listTopContent != null) {
-//                item {
-//                    listTopContent()
-//                }
-//            }
-//            if (!isLoading && errorMessage.isNullOrBlank() && items.isEmpty()) {
-//                item {
-//                    EmptyItemScreen(
-//                        modifier = Modifier.fillMaxSize(),
-//                        title = emptyListTitle,
-//                        icon = emptyListIcon,
-//                        iconDescription = emptyListIconDescription,
-//                        onRefresh = onRefresh
-//                    )
-//                }
-//            } else {
-//                itemsIndexed(items = items, key = { index, item -> index }) { index, item ->
-//                    listItem(item)
-//                }
-//            }
-//            if (errorMessage != null) {
-//                item {
-//                    ErrorBox(
-//                        errorMessage = errorMessage,
-//                        onRetryClick = onLoadMore,
-//                        onOfflineClick = onOffline
-//                    )
-//                }
-//            }
-//            if (isLoading) {
-//                item {
-//                    LoadingBox()
-//                }
-//            }
-//        }
-//        InfiniteListHandler(lazyGridState = lazyListState, onLoadMore = onLoadMore)
-//
-//        ToTopBottomColumn(
-//            modifier = Modifier
-//                .align(Alignment.BottomStart)
-//                .padding(16.dp),
-//            lazyListState = lazyListState,
-//            onClick = {
-//                coroutineScope.launch {
-//                    lazyListState.scrollToItem(0)
-//                }
-//            }
-//        )
-//    }
-}
-
-@Composable
-private fun InfiniteListHandler(
-    lazyGridState: LazyListState,
-    buffer: Int = 2,
-    onLoadMore: () -> Unit
-) {
-    val loadMore = remember {
-        derivedStateOf {
-            val layoutInfo = lazyGridState.layoutInfo
-            val totalItemsNumber = layoutInfo.totalItemsCount
-            val lastVisibleItemIndex = (layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0) + 1
-            lastVisibleItemIndex > (totalItemsNumber - buffer)
-        }
-    }
-
-    LaunchedEffect(loadMore) {
-        snapshotFlow { loadMore.value }
-            .distinctUntilChanged()
-            .collect {
-                onLoadMore()
-            }
-    }
-}
-
-
-@Composable
-private fun ToTopBottomColumn(
-    modifier: Modifier,
-    lazyListState: LazyListState,
-    onClick: () -> Unit
-) {
-    val isScrollToTop by remember {
-        derivedStateOf {
-            lazyListState.lastScrolledBackward && lazyListState.firstVisibleItemScrollOffset != 0 && lazyListState.firstVisibleItemIndex != 0
-        }
-    }
-    AnimatedVisibility(
-        visible = isScrollToTop,
-        modifier = modifier
-    ) {
-        IconButton(
-            onClick = onClick,
-            colors = IconButtonDefaults.iconButtonColors().copy(
-                contentColor = MaterialTheme.colorScheme.onTertiary,
-                containerColor = MaterialTheme.colorScheme.tertiary
-            ),
-            modifier = Modifier.size(48.dp)
-        ) {
-            Icon(
-                imageVector = Icons.Default.ArrowUpward,
-                contentDescription = stringResource(R.string.icon_description_arrow_upward),
-                modifier = Modifier.size(28.dp)
-            )
         }
     }
 }

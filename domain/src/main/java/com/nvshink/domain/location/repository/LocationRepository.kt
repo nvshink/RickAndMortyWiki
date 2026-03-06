@@ -1,22 +1,18 @@
 package com.nvshink.domain.location.repository
 
+import androidx.paging.PagingData
 import com.nvshink.domain.character.model.CharacterModel
 import com.nvshink.domain.location.model.LocationFilterModel
 import com.nvshink.domain.location.model.LocationModel
 import com.nvshink.domain.resource.PageInfoModel
 import com.nvshink.domain.resource.Resource
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 
 interface LocationRepository {
-    /**
-     * Get list of locations on specified page from API:
-     * @param pageInfoModel Current page information.
-     * @param filterModel Defines which fields and values will be filtered by.
-     */
-    suspend fun getLocationsApi(
-        pageInfoModel: PageInfoModel,
+    fun getLocationsStream(
         filterModel: LocationFilterModel
-    ): Flow<Pair<PageInfoModel, Resource<List<LocationModel>>>>
+    ): Flow<PagingData<LocationModel>>
 
     /**
      * Get list of locations by list id from API.
