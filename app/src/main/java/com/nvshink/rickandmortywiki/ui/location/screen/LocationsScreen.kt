@@ -30,12 +30,13 @@ fun LocationsScreen(
     onPageListEvent: (LocationPageListEvent) -> Unit,
     detailModifier: Modifier = Modifier,
     listModifier: Modifier = Modifier,
-    contentType: ContentType,
+    contentType: ContentType
 ) {
     ListOfItems(
         modifier = modifier,
         listModifier = listModifier,
         detailModifier = detailModifier,
+        contentType = contentType,
         listView = ListView.Column,
         listOfItems = locations,
         itemIndex = { location ->

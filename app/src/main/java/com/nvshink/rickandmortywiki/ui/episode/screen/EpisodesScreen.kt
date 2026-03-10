@@ -1,24 +1,30 @@
 package com.nvshink.rickandmortywiki.ui.episode.screen
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.SearchOff
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.paging.LoadState
 import androidx.paging.compose.LazyPagingItems
-import com.nvshink.domain.episode.model.EpisodeModel
 import com.nvshink.rickandmortywiki.R
+import com.nvshink.rickandmortywiki.ui.episode.components.EpisodeFilterDialog
 import com.nvshink.rickandmortywiki.ui.episode.components.EpisodePageListCardContent
+import com.nvshink.rickandmortywiki.ui.episode.components.EpisodePageListCardHeader
 import com.nvshink.rickandmortywiki.ui.episode.event.EpisodePageListEvent
+import com.nvshink.rickandmortywiki.ui.episode.model.EpisodeUiModel
 import com.nvshink.rickandmortywiki.ui.episode.state.EpisodePageListUiState
 import com.nvshink.rickandmortywiki.ui.generic.components.list.ListOfItems
 import com.nvshink.rickandmortywiki.ui.generic.components.list.ListView
 import com.nvshink.rickandmortywiki.ui.generic.components.topbar.PageListTopBar
-import com.nvshink.rickandmortywiki.ui.episode.components.EpisodeFilterDialog
 import com.nvshink.rickandmortywiki.ui.utils.ContentType
 import com.nvshink.rickandmortywiki.ui.utils.EpisodeItemScreenRoute
 
@@ -26,20 +32,21 @@ import com.nvshink.rickandmortywiki.ui.utils.EpisodeItemScreenRoute
 fun EpisodesScreen(
     modifier: Modifier = Modifier,
     pageListUiState: EpisodePageListUiState,
-    episodes: LazyPagingItems<EpisodeModel>,
+    episodes: LazyPagingItems<EpisodeUiModel>,
     onPageListEvent: (EpisodePageListEvent) -> Unit,
     detailModifier: Modifier = Modifier,
     listModifier: Modifier = Modifier,
-    contentType: ContentType,
+    contentType: ContentType
 ) {
     ListOfItems(
         modifier = modifier,
         listModifier = listModifier,
         detailModifier = detailModifier,
+        contentType = contentType,
         listView = ListView.Column,
         listOfItems = episodes,
-        itemIndex = { episode ->
-            episode?.id
+        itemIndex = { uiModel ->
+            (uiModel as? EpisodeUiModel.Episode)?.data?.id
         },
         isRefreshing = episodes.loadState.refresh is LoadState.Loading,
         onRefresh = { onPageListEvent(EpisodePageListEvent.RefreshList(episodes = episodes)) },
@@ -52,8 +59,16 @@ fun EpisodesScreen(
         emptyDetailIconDescription = stringResource(R.string.empty_screen_icon_description_episode),
         listArrangement = 10.dp,
         fab = null,
-        listItem = { episode ->
-            EpisodePageListCardContent(episode)
+        listItem = { uiModel ->
+            when (uiModel) {
+                is EpisodeUiModel.Episode -> {
+                    EpisodePageListCardContent(episode = uiModel.data)
+                }
+
+                is EpisodeUiModel.Header -> {
+                    EpisodePageListCardHeader(season = uiModel.season)
+                }
+            }
         },
         listItemRoute = { episodeId ->
             EpisodeItemScreenRoute(episodeId)

@@ -68,7 +68,7 @@ fun EpisodeItemViewScreen(
             //Characters
             SmallListOfItems(
                 isLoading = charactersUiState is CharacterSmallListUiState.LoadingState,
-                errorMessage = if (charactersUiState is CharacterSmallListUiState.ErrorState) charactersUiState.error?.message
+                errorMessage = if (charactersUiState is CharacterSmallListUiState.ErrorState) charactersUiState.exception?.message
                     ?: "" else null,
                 onRetryClick = onSmallListRefresh,
                 listOfItems = if (charactersUiState is CharacterSmallListUiState.SuccessState) charactersUiState.characterList else emptyList(),

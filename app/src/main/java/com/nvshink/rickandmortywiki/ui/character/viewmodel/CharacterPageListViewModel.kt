@@ -31,7 +31,6 @@ open class CharacterPageListViewModel @Inject constructor(
     private val repository: CharacterRepository,
     private val dataSourceManager: DataSourceManager
 ) : ViewModel() {
-    private val _contentType = MutableStateFlow(ContentType.LIST_ONLY)
     private val _filter = MutableStateFlow(
         CharacterFilterModel(
             name = null,
@@ -66,14 +65,7 @@ open class CharacterPageListViewModel @Inject constructor(
 
     private val _uiState = MutableStateFlow(CharacterPageListUiState())
 
-    val uiState = combine(
-        _uiState,
-        _contentType,
-    ) { uiState, contentType ->
-        uiState.copy(
-            contentType = contentType,
-        )
-    }.stateIn(
+    val uiState = _uiState.stateIn(
         viewModelScope,
         SharingStarted.WhileSubscribed(5000),
         CharacterPageListUiState()
@@ -125,8 +117,6 @@ open class CharacterPageListViewModel @Inject constructor(
                 }
 
                 is CharacterPageListEvent.RefreshList -> event.characters.refresh()
-
-                is CharacterPageListEvent.SetContentType -> _contentType.update { event.contentType }
 
                 is CharacterPageListEvent.SetSearchBarText -> {
                     _uiState.update {

@@ -78,7 +78,7 @@ fun LocationItemViewScreen(
         )
         SmallListOfItems(
             isLoading = residentsUiState is CharacterSmallListUiState.LoadingState,
-            errorMessage = if (residentsUiState is CharacterSmallListUiState.ErrorState) residentsUiState.error?.message
+            errorMessage = if (residentsUiState is CharacterSmallListUiState.ErrorState) residentsUiState.exception?.message
                 ?: "" else null,
             onRetryClick = onSmallListRefresh,
             listOfItems = if (residentsUiState is CharacterSmallListUiState.SuccessState) residentsUiState.characterList else emptyList(),

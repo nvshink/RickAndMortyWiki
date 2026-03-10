@@ -65,7 +65,7 @@ class LocationRepositoryImpl @Inject constructor(
      */
     override suspend fun getLocationsByIdsApi(ids: List<Int>): Flow<Resource<List<LocationModel>>> =
         flow {
-            emit(Resource.Loading)
+            emit(Resource.Loading())
             try {
                 var path = ""
                 ids.forEach { id -> path += "$id," }
@@ -86,12 +86,12 @@ class LocationRepositoryImpl @Inject constructor(
                     )
                 )
             } catch (e: Exception) {
-                emit(Resource.Error(e))
+                emit(Resource.Error(exception = e))
             }
         }
 
     override suspend fun getLocationByIdApi(id: Int): Flow<Resource<LocationModel>> = flow {
-        emit(Resource.Loading)
+        emit(Resource.Loading())
         try {
             val response = service.getGetLocationById(id)
             dao.upsertLocation(response.toEntity())
@@ -111,7 +111,7 @@ class LocationRepositoryImpl @Inject constructor(
             )
         } catch (e: Exception) {
             Log.d("DATA_LOAD", "Location by id error: ${e.message}")
-            emit(Resource.Error(e))
+            emit(Resource.Error(exception = e))
         }
     }
 
@@ -119,7 +119,7 @@ class LocationRepositoryImpl @Inject constructor(
     override suspend fun getLocationsDB(
         filterModel: LocationFilterModel
     ): Flow<Resource<List<LocationModel>>> = flow {
-        emit(Resource.Loading)
+        emit(Resource.Loading())
         //Try load from cache
         try {
             dao.getLocations(
@@ -149,7 +149,7 @@ class LocationRepositoryImpl @Inject constructor(
 
     override suspend fun getLocationsByIdsDB(ids: List<Int>): Flow<Resource<List<LocationModel>>> =
         flow {
-            emit(Resource.Loading)
+            emit(Resource.Loading())
             try {
                 dao.getLocationsByIds(ids).map { locations ->
                     locations.map { it.toModel() }

@@ -35,7 +35,7 @@ fun CharactersScreen(
     onPageListEvent: (CharacterPageListEvent) -> Unit,
     detailModifier: Modifier = Modifier,
     listModifier: Modifier = Modifier,
-    contentType: ContentType,
+    contentType: ContentType
 ) {
     ListOfItems(
         modifier = modifier,
@@ -43,6 +43,7 @@ fun CharactersScreen(
         detailModifier = detailModifier,
         listView = ListView.Grid,
         listOfItems = characters,
+        contentType = contentType,
         itemIndex = { character ->
             character?.id
         },

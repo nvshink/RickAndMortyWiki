@@ -67,7 +67,7 @@ fun CharacterItemScreen(
                     modifier = Modifier
                         .fillMaxSize()
                         .weight(1f),
-                    errorMessage = detailUiState.error.message ?: "",
+                    errorMessage = detailUiState.message ?: detailUiState.exception?.message ?: "",
                     onClick = onRefreshClick
                 )
             }

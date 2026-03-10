@@ -14,9 +14,9 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import javax.inject.Inject
@@ -28,73 +28,52 @@ open class CharacterDetailViewModel @Inject constructor(
     private val dataSourceManager: DataSourceManager
 ) : ViewModel() {
     private val _reloadCounts = MutableStateFlow(0)
-    private val _contentType = MutableStateFlow(ContentType.LIST_ONLY)
     private val _characterId = MutableStateFlow(0)
-    private val _isLocal = dataSourceManager.isLocal
-    private val _isRefresh = MutableStateFlow(false)
-
-    private val _character =
-        combine(
-            _characterId,
-            _reloadCounts
-        ) { characterId, _ ->
-            Log.d("DATA_LOAD", "VM Character id: $characterId")
-
-            when (val apiResult = repository.getCharacterByIdApi(characterId).first()) {
-                is Resource.Success -> flowOf(apiResult)
-                is Resource.Loading -> flowOf(apiResult)
-                is Resource.Error -> {
+    private val _character = combine(
+        _characterId,
+        _reloadCounts
+    ) { characterId, _ ->
+        characterId
+    }.flatMapLatest { characterId ->
+        if (characterId <= 0) {
+            flowOf(Resource.Loading())
+        } else {
+            repository.getCharacterByIdApi(characterId).flatMapLatest { apiResult ->
+                if (apiResult is Resource.Error) {
                     repository.getCharacterByIdDB(characterId)
-                }
-            }
-        }.flatMapLatest { it }.stateIn(
-            viewModelScope,
-            SharingStarted.WhileSubscribed(5000),
-            Resource.Loading
-        )
-    private val _uiState =
-        MutableStateFlow<CharacterDetailUiState>(CharacterDetailUiState.LoadingState())
-    val uiState = combine(
-        _uiState,
-        _character,
-        _contentType
-    ) { uiState, character, contentType ->
-        when (character) {
-            is Resource.Loading -> {
-                _uiState.update {
-                    CharacterDetailUiState.LoadingState(
-                        isLocal = _isLocal.value,
-                        contentType = contentType
-                    )
-                }
-            }
-
-            is Resource.Success -> {
-                _isRefresh.update { false }
-                _uiState.update {
-                    CharacterDetailUiState.ViewState(
-                        character = character.data,
-                        isLocal = _isLocal.value,
-                        contentType = contentType
-                    )
-                }
-            }
-
-            is Resource.Error -> {
-                _isRefresh.update { false }
-                _uiState.update {
-                    CharacterDetailUiState.ErrorState(
-                        error = character.exception,
-                        isLocal = _isLocal.value,
-                        contentType = contentType
-                    )
+                } else {
+                    flowOf(apiResult)
                 }
             }
         }
-        uiState
     }.stateIn(
         viewModelScope,
-        SharingStarted.Companion.WhileSubscribed(5000),
+        SharingStarted.WhileSubscribed(5000),
+        Resource.Loading()
+    )
+
+    val uiState = _character.map { character ->
+        character.fold(
+            onLoading = { data ->
+                CharacterDetailUiState.LoadingState(
+                    character = data
+                )
+            },
+            onSuccess = { characterData ->
+                CharacterDetailUiState.ViewState(
+                    character = characterData
+                )
+            },
+            onError = { message, exception ->
+                CharacterDetailUiState.ErrorState(
+                    message = message,
+                    exception = exception
+                )
+            }
+        )
+    }.stateIn(
+        viewModelScope,
+        SharingStarted.WhileSubscribed(5000),
         CharacterDetailUiState.LoadingState()
     )
 
@@ -103,13 +82,9 @@ open class CharacterDetailViewModel @Inject constructor(
             is CharacterDetailEvent.SetCharacter ->
                 _characterId.update { event.id }
 
-            is CharacterDetailEvent.SetContentType ->
-                _contentType.update { event.contentType }
-
             is CharacterDetailEvent.SetIsLocal -> dataSourceManager.setLocal(event.isLocal)
 
             CharacterDetailEvent.Refresh -> {
-                _isRefresh.update { true }
                 reloadCharacter()
             }
         }

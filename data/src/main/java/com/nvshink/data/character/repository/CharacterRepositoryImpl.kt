@@ -64,7 +64,7 @@ class CharacterRepositoryImpl @Inject constructor(
      */
     override suspend fun getCharactersByIdsApi(ids: List<Int>): Flow<Resource<List<CharacterModel>>> =
         flow {
-            emit(Resource.Loading)
+            emit(Resource.Loading())
             try {
                 var path = ""
                 ids.forEach { id -> path += "$id," }
@@ -96,7 +96,7 @@ class CharacterRepositoryImpl @Inject constructor(
      */
     override suspend fun getCharacterByIdApi(id: Int): Flow<Resource<CharacterModel>> = flow {
         Log.d("DATA_LOAD", "Loading 1")
-        emit(Resource.Loading)
+        emit(Resource.Loading())
         Log.d("DATA_LOAD", "Loading 2")
         try {
 
@@ -124,7 +124,7 @@ class CharacterRepositoryImpl @Inject constructor(
 
     override suspend fun getCharactersByIdsDB(ids: List<Int>): Flow<Resource<List<CharacterModel>>> =
         flow {
-            emit(Resource.Loading)
+            emit(Resource.Loading())
             try {
                 dao.getCharactersByIds(ids).map { characters ->
                     characters.map { it.toModel() }

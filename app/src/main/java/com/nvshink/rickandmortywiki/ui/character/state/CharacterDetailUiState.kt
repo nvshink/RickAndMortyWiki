@@ -8,23 +8,17 @@ import com.nvshink.rickandmortywiki.ui.utils.ContentType
 import java.time.ZonedDateTime
 
 interface CharacterDetailUiState {
-    val isLocal: Boolean
-    val contentType: ContentType
 
     data class LoadingState(
-        override val isLocal: Boolean = false,
-        override val contentType: ContentType = ContentType.LIST_ONLY
+        val character: CharacterModel? = null,
     ) : CharacterDetailUiState
 
     data class ViewState(
         val character: CharacterModel,
-        override val isLocal: Boolean,
-        override val contentType: ContentType
     ) : CharacterDetailUiState
 
     data class ErrorState(
-        val error: Exception,
-        override val isLocal: Boolean,
-        override val contentType: ContentType
+        val message: String? = null,
+        val exception: Exception? = null,
     ) : CharacterDetailUiState
 }

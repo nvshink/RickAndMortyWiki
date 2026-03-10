@@ -47,7 +47,7 @@ interface EpisodeDao {
     suspend fun upsertRemoteKeys(remoteKeys: List<EpisodeRemoteKey>)
 
     @Query("SELECT * FROM episode_remote_keys WHERE episodeId = :episodeId")
-    fun getRemoteKeyByEpisodeId(episodeId: Int): EpisodeRemoteKey?
+    suspend fun getRemoteKeyByEpisodeId(episodeId: Int): EpisodeRemoteKey?
 
     @Query("DELETE FROM episode_remote_keys")
     suspend fun clearRemoteKeys()

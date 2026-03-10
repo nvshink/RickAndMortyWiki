@@ -4,7 +4,6 @@ import androidx.paging.PagingData
 import com.nvshink.domain.episode.model.EpisodeFilterModel
 import com.nvshink.domain.episode.model.EpisodeModel
 import com.nvshink.rickandmortywiki.ui.generic.state.PageListUiState
-import com.nvshink.rickandmortywiki.ui.utils.ContentType
 
 data class EpisodePageListUiState(
     val episodeList: PagingData<EpisodeModel> = PagingData.empty(),
@@ -19,6 +18,5 @@ data class EpisodePageListUiState(
     override val isLocal: Boolean = false,
     override val searchBarText: String = "",
     override val searchBarFiltersText: String = "",
-    override val contentType: ContentType = ContentType.LIST_ONLY,
     override val error: Exception? = null
 ) : PageListUiState<EpisodeModel>

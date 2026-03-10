@@ -49,7 +49,7 @@ interface LocationDao {
     suspend fun upsertRemoteKeys(remoteKeys: List<LocationRemoteKey>)
 
     @Query("SELECT * FROM location_remote_keys WHERE locationId = :locationId")
-    fun getRemoteKeyByLocationId(locationId: Int): LocationRemoteKey?
+    suspend fun getRemoteKeyByLocationId(locationId: Int): LocationRemoteKey?
 
     @Query("DELETE FROM location_remote_keys")
     suspend fun clearRemoteKeys()

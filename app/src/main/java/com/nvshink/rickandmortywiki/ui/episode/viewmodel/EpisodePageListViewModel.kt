@@ -3,14 +3,16 @@ package com.nvshink.rickandmortywiki.ui.episode.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.paging.PagingData
+import androidx.paging.TerminalSeparatorType
 import androidx.paging.cachedIn
+import androidx.paging.insertSeparators
+import androidx.paging.map
 import com.nvshink.data.generic.local.datasource.DataSourceManager
 import com.nvshink.domain.episode.model.EpisodeFilterModel
-import com.nvshink.domain.episode.model.EpisodeModel
 import com.nvshink.domain.episode.repository.EpisodeRepository
 import com.nvshink.rickandmortywiki.ui.episode.event.EpisodePageListEvent
+import com.nvshink.rickandmortywiki.ui.episode.model.EpisodeUiModel
 import com.nvshink.rickandmortywiki.ui.episode.state.EpisodePageListUiState
-import com.nvshink.rickandmortywiki.ui.utils.ContentType
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
@@ -20,6 +22,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -31,7 +34,6 @@ open class EpisodePageListViewModel @Inject constructor(
     private val repository: EpisodeRepository,
     private val dataSourceManager: DataSourceManager
 ) : ViewModel() {
-    private val _contentType = MutableStateFlow(ContentType.LIST_ONLY)
     private val _filter = MutableStateFlow(
         EpisodeFilterModel(
             name = null,
@@ -52,22 +54,27 @@ open class EpisodePageListViewModel @Inject constructor(
 
     private val _episodes = filter.flatMapLatest { filter ->
         repository.getEpisodesStream(filterModel = filter)
+    }.map { pagingData ->
+        pagingData.map {
+            EpisodeUiModel.Episode(it) }
+            .insertSeparators(terminalSeparatorType = TerminalSeparatorType.SOURCE_COMPLETE) { before: EpisodeUiModel.Episode?, after: EpisodeUiModel.Episode? ->
+                val beforeSeason = before?.data?.episode?.substringBefore("E")
+                val afterSeason = after?.data?.episode?.substringBefore("E")
+                if (afterSeason != null && beforeSeason != afterSeason) {
+                    EpisodeUiModel.Header(afterSeason)
+                } else {
+                    null
+                }
+            }
     }.cachedIn(viewModelScope)
 
-    fun getEpisodes(): Flow<PagingData<EpisodeModel>> {
+    fun getEpisodes(): Flow<PagingData<EpisodeUiModel>> {
         return _episodes
     }
 
     private val _uiState = MutableStateFlow(EpisodePageListUiState())
 
-    val uiState = combine(
-        _uiState,
-        _contentType,
-    ) { uiState, contentType ->
-        uiState.copy(
-            contentType = contentType,
-        )
-    }.stateIn(
+    val uiState = _uiState.stateIn(
         viewModelScope,
         SharingStarted.WhileSubscribed(5000),
         EpisodePageListUiState()
@@ -116,8 +123,6 @@ open class EpisodePageListViewModel @Inject constructor(
                 }
 
                 is EpisodePageListEvent.RefreshList -> event.episodes.refresh()
-
-                is EpisodePageListEvent.SetContentType -> _contentType.update { event.contentType }
 
                 is EpisodePageListEvent.SetSearchBarText -> {
                     _uiState.update {

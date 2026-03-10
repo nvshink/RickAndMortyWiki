@@ -3,38 +3,38 @@ package com.nvshink.rickandmortywiki.ui.generic.components.navigation
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.VisibilityThreshold
 import androidx.compose.animation.core.spring
-import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.animation.scaleIn
-import androidx.compose.animation.scaleOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.ui.unit.IntOffset
 
 object ScreenTransitions {
-    fun enterTransition(): EnterTransition = fadeIn(tween(300))
-
-    fun exitTransition(): ExitTransition = fadeOut(tween(300))
-
-
-    fun popEnterTransition(): EnterTransition = slideInHorizontally(
-        animationSpec = spring(
-            dampingRatio = Spring.DampingRatioLowBouncy,
-            stiffness = Spring.StiffnessMedium
-        ),
-        initialOffsetX = { fullWidth -> -fullWidth / 4 }
-    ) + fadeIn(tween(durationMillis = 200)) + scaleIn(
-        spring(dampingRatio = Spring.DampingRatioMediumBouncy),
-        0.7f
+    private fun <T> adaptiveSpringSpec(visibilityThreshold: T? = null) = spring<T>(
+        dampingRatio = Spring.DampingRatioNoBouncy,
+        stiffness = Spring.StiffnessMediumLow,
+        visibilityThreshold = visibilityThreshold
     )
 
+    fun enterTransition(): EnterTransition = slideInHorizontally(
+        initialOffsetX = { it },
+        animationSpec = adaptiveSpringSpec(IntOffset.VisibilityThreshold)
+    ) + fadeIn(adaptiveSpringSpec())
+
+    fun exitTransition(): ExitTransition = slideOutHorizontally(
+        targetOffsetX = { -it },
+        animationSpec = adaptiveSpringSpec(IntOffset.VisibilityThreshold)
+    ) + fadeOut(adaptiveSpringSpec())
+
+    fun popEnterTransition(): EnterTransition = slideInHorizontally(
+        initialOffsetX = { -it },
+        animationSpec = adaptiveSpringSpec(IntOffset.VisibilityThreshold)
+    ) + fadeIn(adaptiveSpringSpec())
 
     fun popExitTransition(): ExitTransition = slideOutHorizontally(
-        animationSpec = spring(
-            dampingRatio = Spring.DampingRatioLowBouncy,
-            stiffness = Spring.StiffnessMedium
-        ),
-        targetOffsetX = { fullWidth -> fullWidth }
-    ) + scaleOut(spring(dampingRatio = Spring.DampingRatioMediumBouncy), 0.9f)
+        targetOffsetX = { it },
+        animationSpec = adaptiveSpringSpec(IntOffset.VisibilityThreshold)
+    ) + fadeOut(adaptiveSpringSpec())
 }

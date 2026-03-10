@@ -9,6 +9,5 @@ interface PageListUiState<T : Any> {
     val isLocal: Boolean
     val searchBarText: String
     val searchBarFiltersText: String
-    val contentType: ContentType
     val error: Throwable?
 }

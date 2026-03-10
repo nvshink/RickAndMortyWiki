@@ -7,13 +7,14 @@ import com.nvshink.domain.episode.repository.EpisodeRepository
 import com.nvshink.domain.resource.Resource
 import com.nvshink.rickandmortywiki.ui.episode.event.EpisodeDetailEvent
 import com.nvshink.rickandmortywiki.ui.episode.state.EpisodeDetailUiState
-import com.nvshink.rickandmortywiki.ui.utils.ContentType
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import javax.inject.Inject
@@ -25,70 +26,53 @@ open class EpisodeDetailViewModel @Inject constructor(
     private val dataSourceManager: DataSourceManager
 ) : ViewModel() {
     private val _reloadCounts = MutableStateFlow(0)
-    private val _contentType = MutableStateFlow(ContentType.LIST_ONLY)
     private val _episodeId = MutableStateFlow(0)
-    private val _isLocal = dataSourceManager.isLocal
-    private val _isRefresh = MutableStateFlow(false)
 
     private val _episode =
         combine(
             _episodeId,
-            _isLocal,
             _reloadCounts
-        ) { episodeId, isLocal, _ ->
-            if (!isLocal) {
-                repository.getEpisodeByIdApi(episodeId)
+        ) { episodeId, _ ->
+            episodeId
+        }.flatMapLatest { characterId ->
+            if (characterId <= 0) {
+                flowOf(Resource.Loading())
             } else {
-                repository.getEpisodeByIdDB(episodeId)
+                repository.getEpisodeByIdApi(characterId).flatMapLatest { apiResult ->
+                    if (apiResult is Resource.Error) {
+                        repository.getEpisodeByIdDB(characterId)
+                    } else {
+                        flowOf(apiResult)
+                    }
+                }
             }
-        }.flatMapLatest { it }.stateIn(
+        }.stateIn(
             viewModelScope,
-            SharingStarted.Companion.WhileSubscribed(5000),
-            Resource.Loading
+            SharingStarted.WhileSubscribed(5000),
+            Resource.Loading()
         )
-    private val _uiState =
-        MutableStateFlow<EpisodeDetailUiState>(EpisodeDetailUiState.LoadingState())
-    val uiState = combine(
-        _uiState,
-        _episode,
-        _contentType
-    ) { uiState, episode, contentType ->
-        when (episode) {
-            is Resource.Loading -> {
-                _uiState.update {
-                    EpisodeDetailUiState.LoadingState(
-                        isLocal = _isLocal.value,
-                        contentType = contentType
-                    )
-                }
+    val uiState = _episode.map { episode ->
+        episode.fold(
+            onLoading = { data ->
+                EpisodeDetailUiState.LoadingState(
+                    episode = data
+                )
+            },
+            onSuccess = { data ->
+                EpisodeDetailUiState.ViewState(
+                    episode = data
+                )
+            },
+            onError = { message, exception ->
+                EpisodeDetailUiState.ErrorState(
+                    message = message,
+                    exception = exception
+                )
             }
-
-            is Resource.Success -> {
-                _isRefresh.update { false }
-                _uiState.update {
-                    EpisodeDetailUiState.ViewState(
-                        episode = episode.data,
-                        isLocal = _isLocal.value,
-                        contentType = contentType
-                    )
-                }
-            }
-
-            is Resource.Error -> {
-                _isRefresh.update { false }
-                _uiState.update {
-                    EpisodeDetailUiState.ErrorState(
-                        error = episode.exception,
-                        isLocal = _isLocal.value,
-                        contentType = contentType
-                    )
-                }
-            }
-        }
-        uiState
+        )
     }.stateIn(
         viewModelScope,
-        SharingStarted.Companion.WhileSubscribed(5000),
+        SharingStarted.WhileSubscribed(5000),
         EpisodeDetailUiState.LoadingState()
     )
 
@@ -97,17 +81,14 @@ open class EpisodeDetailViewModel @Inject constructor(
             is EpisodeDetailEvent.SetEpisode ->
                 _episodeId.update { event.id }
 
-            is EpisodeDetailEvent.SetContentType ->
-                _contentType.update { event.contentType }
-
             is EpisodeDetailEvent.SetIsLocal -> dataSourceManager.setLocal(event.isLocal)
 
             EpisodeDetailEvent.Refresh -> {
-                _isRefresh.update { true }
                 reloadEpisode()
             }
         }
     }
+
     private fun reloadEpisode() {
         _reloadCounts.update { it + 1 }
     }

@@ -69,7 +69,7 @@ fun LocationItemScreen(
                     modifier = Modifier
                         .fillMaxSize()
                         .weight(1f),
-                    errorMessage = detailUiState.error.message ?: "",
+                    errorMessage = detailUiState.exception?.message ?: "",
                     onClick = onRefreshClick
                 )
             }

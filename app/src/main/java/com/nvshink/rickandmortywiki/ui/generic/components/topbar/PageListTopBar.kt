@@ -22,9 +22,11 @@ import androidx.compose.material3.SearchBarDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.nvshink.rickandmortywiki.R
@@ -39,6 +41,11 @@ fun PageListTopBar(
     onSearch: (String) -> Unit,
     onFilterButton: (() -> Unit)? = null
 ) {
+    //Clear the autofocus set by AnimatedPane from ListOfItems
+    val focusManager = LocalFocusManager.current
+    LaunchedEffect(Unit) {
+        focusManager.clearFocus()
+    }
     Column(
         verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {

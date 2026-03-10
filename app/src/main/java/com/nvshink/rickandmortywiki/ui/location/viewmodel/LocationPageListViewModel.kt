@@ -62,14 +62,7 @@ open class LocationPageListViewModel @Inject constructor(
 
     private val _uiState = MutableStateFlow(LocationPageListUiState())
 
-    val uiState = combine(
-        _uiState,
-        _contentType,
-    ) { uiState, contentType ->
-        uiState.copy(
-            contentType = contentType,
-        )
-    }.stateIn(
+    val uiState = _uiState.stateIn(
         viewModelScope,
         SharingStarted.WhileSubscribed(5000),
         LocationPageListUiState()

@@ -65,7 +65,7 @@ class EpisodeRepositoryImpl @Inject constructor(
      */
     override suspend fun getEpisodesByIdsApi(ids: List<Int>): Flow<Resource<List<EpisodeModel>>> =
         flow {
-            emit(Resource.Loading)
+            emit(Resource.Loading())
             try {
                 var path = ""
                 ids.forEach { id -> path += "$id," }
@@ -96,7 +96,7 @@ class EpisodeRepositoryImpl @Inject constructor(
      * @param id Episode id number.
      */
     override suspend fun getEpisodeByIdApi(id: Int): Flow<Resource<EpisodeModel>> = flow {
-        emit(Resource.Loading)
+        emit(Resource.Loading())
         try {
             val response = service.getGetEpisodeById(id)
             dao.upsertEpisode(response.toEntity())
@@ -123,7 +123,7 @@ class EpisodeRepositoryImpl @Inject constructor(
     override suspend fun getEpisodesDB(
         filterModel: EpisodeFilterModel
     ): Flow<Resource<List<EpisodeModel>>> = flow {
-        emit(Resource.Loading)
+        emit(Resource.Loading())
         //Try load from cache
         try {
             dao.getEpisodes(
@@ -152,7 +152,7 @@ class EpisodeRepositoryImpl @Inject constructor(
 
     override suspend fun getEpisodesByIdsDB(ids: List<Int>): Flow<Resource<List<EpisodeModel>>> =
         flow {
-            emit(Resource.Loading)
+            emit(Resource.Loading())
             try {
                 dao.getEpisodesByIds(ids).map { episodes ->
                     episodes.map { it.toModel() }

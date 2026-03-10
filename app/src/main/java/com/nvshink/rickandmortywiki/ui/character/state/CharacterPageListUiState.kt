@@ -22,6 +22,5 @@ data class CharacterPageListUiState(
     override val isLocal: Boolean = false,
     override val searchBarText: String = "",
     override val searchBarFiltersText: String = "",
-    override val contentType: ContentType = ContentType.LIST_ONLY,
     override val error: Exception? = null
 ) : PageListUiState<CharacterModel>
