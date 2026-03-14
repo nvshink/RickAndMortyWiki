@@ -8,7 +8,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.movableContentOf
@@ -23,14 +22,12 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.paging.compose.collectAsLazyPagingItems
-import com.nvshink.rickandmortywiki.ui.character.event.CharacterPageListEvent
 import com.nvshink.rickandmortywiki.ui.character.screen.CharactersScreen
 import com.nvshink.rickandmortywiki.ui.character.viewmodel.CharacterPageListViewModel
 import com.nvshink.rickandmortywiki.ui.episode.screen.EpisodesScreen
 import com.nvshink.rickandmortywiki.ui.episode.viewmodel.EpisodePageListViewModel
 import com.nvshink.rickandmortywiki.ui.generic.components.navigation.layouts.NavigationBarLayout
 import com.nvshink.rickandmortywiki.ui.generic.components.navigation.layouts.NavigationRailLayout
-import com.nvshink.rickandmortywiki.ui.generic.components.navigation.layouts.PermanentNavigationDrawerLayout
 import com.nvshink.rickandmortywiki.ui.location.screen.LocationsScreen
 import com.nvshink.rickandmortywiki.ui.location.viewmodel.LocationPageListViewModel
 import com.nvshink.rickandmortywiki.ui.utils.CharactersScreenRoute
@@ -53,19 +50,8 @@ fun RickAndMortyWikiApp(
             navigationType = NavigationType.BOTTOM_NAVIGATION
         }
 
-        WindowWidthSizeClass.Medium -> {
+        WindowWidthSizeClass.Medium, WindowWidthSizeClass.Expanded -> {
             contentType = ContentType.LIST_ONLY
-            navigationType = NavigationType.NAVIGATION_RAIL
-            screensShape = MaterialTheme.shapes.extraLarge.copy(
-                topEnd = CornerSize(
-                    0.dp
-                ),
-                bottomEnd = CornerSize(0.dp)
-            ) as RoundedCornerShape
-        }
-
-        WindowWidthSizeClass.Expanded -> {
-            contentType = ContentType.LIST_AND_DETAIL
             navigationType = NavigationType.NAVIGATION_RAIL
             screensShape = MaterialTheme.shapes.extraLarge.copy(
                 topEnd = CornerSize(
@@ -192,23 +178,6 @@ fun RickAndMortyWikiApp(
                     }
                 }
             ) {
-                navHost()
-            }
-        }
-
-        NavigationType.PERMANENT_NAVIGATION_DRAWER -> {
-            PermanentNavigationDrawerLayout(
-                currentDestination = currentDestination,
-                onMenuItemSelected = {
-                    navController.navigate(it) {
-                        popUpTo(navController.graph.findStartDestination().id) {
-                            saveState = true
-                        }
-                        launchSingleTop = true
-                        restoreState = true
-                    }
-                }
-            ) { innerPadding ->
                 navHost()
             }
         }

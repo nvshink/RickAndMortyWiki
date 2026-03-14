@@ -1,6 +1,5 @@
 package com.nvshink.rickandmortywiki.ui.character.viewmodel
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nvshink.data.generic.local.datasource.DataSourceManager
@@ -8,7 +7,6 @@ import com.nvshink.domain.character.repository.CharacterRepository
 import com.nvshink.domain.resource.Resource
 import com.nvshink.rickandmortywiki.ui.character.event.CharacterDetailEvent
 import com.nvshink.rickandmortywiki.ui.character.state.CharacterDetailUiState
-import com.nvshink.rickandmortywiki.ui.utils.ContentType
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow

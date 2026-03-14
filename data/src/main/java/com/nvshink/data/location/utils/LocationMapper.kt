@@ -3,7 +3,6 @@ package com.nvshink.data.location.utils
 import com.nvshink.data.location.local.entity.LocationEntity
 import com.nvshink.data.location.network.response.LocationResponse
 import com.nvshink.domain.location.model.LocationModel
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import java.time.ZonedDateTime
 

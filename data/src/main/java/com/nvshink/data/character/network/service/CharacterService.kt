@@ -1,5 +1,6 @@
 package com.nvshink.data.character.network.service
 
+import android.util.Log
 import com.nvshink.data.character.network.response.CharacterResponse
 import com.nvshink.data.generic.network.response.PageResponse
 import io.ktor.client.HttpClient
@@ -28,10 +29,6 @@ class CharacterService @Inject constructor(
                 parameter("type", type)
                 parameter("gender", gender)
             }.body<PageResponse<CharacterResponse>>()
-    }
-
-    suspend fun getGetListOfCharactersByUrl(url: String): PageResponse<CharacterResponse> {
-        return client.get(urlString = url).body<PageResponse<CharacterResponse>>()
     }
     suspend fun getGetListOfCharactersByPath(path: String): List<CharacterResponse> {
         return client.get(urlString = "$basePath$path").body<List<CharacterResponse>>()

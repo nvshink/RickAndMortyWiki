@@ -6,7 +6,6 @@ import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.SearchOff
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
-import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -19,7 +18,6 @@ import com.nvshink.rickandmortywiki.ui.character.components.CharacterFilterDialo
 import com.nvshink.rickandmortywiki.ui.character.components.CharacterPageListCardContent
 import com.nvshink.rickandmortywiki.ui.character.event.CharacterPageListEvent
 import com.nvshink.rickandmortywiki.ui.character.state.CharacterPageListUiState
-import com.nvshink.rickandmortywiki.ui.generic.components.list.InfinityLazyGrid
 import com.nvshink.rickandmortywiki.ui.generic.components.list.ListOfItems
 import com.nvshink.rickandmortywiki.ui.generic.components.list.ListView
 import com.nvshink.rickandmortywiki.ui.generic.components.topbar.PageListTopBar
@@ -57,7 +55,6 @@ fun CharactersScreen(
         emptyDetailIcon = Icons.Filled.Person,
         emptyDetailIconDescription = stringResource(R.string.empty_screen_icon_description_location),
         listArrangement = 10.dp,
-        fab = null,
         listItem = { character ->
             CharacterPageListCardContent(character)
         },

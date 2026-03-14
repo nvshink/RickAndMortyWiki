@@ -7,7 +7,6 @@ import androidx.compose.material.icons.filled.HeartBroken
 import androidx.compose.material.icons.filled.QuestionMark
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.core.content.ContextCompat.getString
-import com.nvshink.domain.character.model.CharacterGender
 import com.nvshink.domain.character.model.CharacterStatus
 import com.nvshink.rickandmortywiki.R
 

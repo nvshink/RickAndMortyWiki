@@ -33,7 +33,7 @@ fun EpisodeItemViewScreen(
     onSmallListRefresh: () -> Unit = {},
     onNavigation: (Any) -> Unit
 ) {
-    val context = LocalContext.current
+    LocalContext.current
     Column(modifier = modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(32.dp)) {
         //Name
         Text(

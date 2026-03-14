@@ -6,8 +6,6 @@ import androidx.room.Query
 import androidx.room.RawQuery
 import androidx.room.RoomRawQuery
 import androidx.room.Upsert
-import com.nvshink.data.character.local.entity.CharacterEntity
-import com.nvshink.data.episode.local.entity.EpisodeEntity
 import com.nvshink.data.location.local.entity.LocationEntity
 import com.nvshink.data.location.local.entity.LocationRemoteKey
 import kotlinx.coroutines.flow.Flow
@@ -21,8 +19,20 @@ interface LocationDao {
     @Upsert
     suspend fun upsertLocations(locationEntities: List<LocationEntity>)
 
-    @Query("SELECT * FROM locations ORDER BY id ASC")
-    fun getPagingSource(): PagingSource<Int, LocationEntity>
+    @Query(
+        """
+        SELECT * FROM locations 
+        WHERE (:name IS NULL OR name LIKE '%' || :name || '%')
+        AND (:type IS NULL OR type LIKE '%' || :type || '%')
+        AND (:dimension IS NULL OR dimension LIKE '%' || :dimension || '%')
+        ORDER BY id ASC
+    """
+    )
+    fun getPagingSource(
+        name: String? = null,
+        type: String? = null,
+        dimension: String? = null
+    ): PagingSource<Int, LocationEntity>
 
     @Query("SELECT COUNT(*) FROM location_remote_keys")
     fun getLocationsCountFlow(): Flow<Int>

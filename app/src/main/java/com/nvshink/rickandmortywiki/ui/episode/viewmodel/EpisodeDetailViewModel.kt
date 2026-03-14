@@ -22,8 +22,7 @@ import javax.inject.Inject
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 open class EpisodeDetailViewModel @Inject constructor(
-    private val repository: EpisodeRepository,
-    private val dataSourceManager: DataSourceManager
+    private val repository: EpisodeRepository
 ) : ViewModel() {
     private val _reloadCounts = MutableStateFlow(0)
     private val _episodeId = MutableStateFlow(0)
@@ -80,8 +79,6 @@ open class EpisodeDetailViewModel @Inject constructor(
         when (event) {
             is EpisodeDetailEvent.SetEpisode ->
                 _episodeId.update { event.id }
-
-            is EpisodeDetailEvent.SetIsLocal -> dataSourceManager.setLocal(event.isLocal)
 
             EpisodeDetailEvent.Refresh -> {
                 reloadEpisode()

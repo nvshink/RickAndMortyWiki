@@ -1,13 +1,9 @@
 package com.nvshink.domain.episode.repository
 
 import androidx.paging.PagingData
-import com.nvshink.domain.character.model.CharacterModel
 import com.nvshink.domain.episode.model.EpisodeFilterModel
 import com.nvshink.domain.episode.model.EpisodeModel
-import com.nvshink.domain.resource.PageInfoModel
 import com.nvshink.domain.resource.Resource
-import com.nvshink.domain.resource.SortTypes
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 
 interface EpisodeRepository {

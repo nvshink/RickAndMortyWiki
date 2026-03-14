@@ -8,7 +8,6 @@ import androidx.room.RoomRawQuery
 import androidx.room.Upsert
 import com.nvshink.data.episode.local.entity.EpisodeEntity
 import com.nvshink.data.episode.local.entity.EpisodeRemoteKey
-import com.nvshink.data.location.local.entity.LocationEntity
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -19,8 +18,18 @@ interface EpisodeDao {
     @Upsert
     suspend fun upsertEpisodes(episodeEntities: List<EpisodeEntity>)
 
-    @Query("SELECT * FROM episodes ORDER BY id ASC")
-    fun getPagingSource(): PagingSource<Int, EpisodeEntity>
+    @Query(
+        """
+        SELECT * FROM episodes 
+        WHERE (:name IS NULL OR name LIKE '%' || :name || '%')
+        AND (:episode IS NULL OR episode LIKE '%' || :episode || '%')
+        ORDER BY id ASC
+    """
+    )
+    fun getPagingSource(
+        name: String? = null,
+        episode: String? = null
+    ): PagingSource<Int, EpisodeEntity>
 
     @Query("SELECT COUNT(*) FROM episode_remote_keys")
     fun getEpisodesCountFlow(): Flow<Int>

@@ -1,7 +1,6 @@
 package com.nvshink.rickandmortywiki.ui.character.state
 
 import com.nvshink.domain.character.model.CharacterModel
-import com.nvshink.rickandmortywiki.ui.utils.ContentType
 
 interface CharacterSmallListUiState {
 

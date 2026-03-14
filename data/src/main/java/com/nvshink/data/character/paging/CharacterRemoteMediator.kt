@@ -13,7 +13,6 @@ import com.nvshink.data.character.network.service.CharacterService
 import com.nvshink.data.character.utils.toEntity
 import com.nvshink.data.generic.local.room.RickAndMortyWikiDB
 import com.nvshink.domain.character.model.CharacterFilterModel
-import com.nvshink.domain.character.model.CharacterModel
 
 @OptIn(ExperimentalPagingApi::class)
 class CharacterRemoteMediator(

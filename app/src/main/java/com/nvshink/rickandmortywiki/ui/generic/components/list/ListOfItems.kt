@@ -1,13 +1,9 @@
 package com.nvshink.rickandmortywiki.ui.generic.components.list
 
-import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -64,7 +60,6 @@ fun <T : Any> ListOfItems(
     emptyDetailIconDescription: String = "",
     emptyDetailTitle: String? = "",
     listArrangement: Dp = 0.dp,
-    fab: (@Composable (Modifier) -> Unit)?,
     listItem: @Composable (T) -> Unit,
     listItemRoute: (Int) -> Any,
     listTopContent: @Composable () -> Unit = @Composable {}
@@ -196,13 +191,6 @@ fun <T : Any> ListOfItems(
                             }
                         }
                     }
-                    if (fab != null) {
-                        fab(
-                            Modifier
-                                .align(Alignment.BottomEnd)
-                                .padding(16.dp)
-                        )
-                    }
                 }
             }
         },
@@ -226,6 +214,7 @@ fun <T : Any> ListOfItems(
                         )
                     }
                 } else EmptyItemScreen(
+                    modifier = Modifier.fillMaxSize(),
                     title = emptyDetailTitle,
                     icon = emptyDetailIcon,
                     iconDescription = emptyDetailIconDescription

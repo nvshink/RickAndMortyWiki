@@ -22,7 +22,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
-import com.nvshink.domain.character.model.CharacterFilterModel
 import com.nvshink.rickandmortywiki.R
 import com.nvshink.rickandmortywiki.ui.generic.components.topbar.ItemScreenTopBar
 import com.nvshink.rickandmortywiki.ui.utils.ContentType

@@ -15,7 +15,6 @@ data class EpisodePageListUiState(
     override val isShowingFilter: Boolean = false,
     override val isAtTop: Boolean = false,
     override val isRefreshing: Boolean = false,
-    override val isLocal: Boolean = false,
     override val searchBarText: String = "",
     override val searchBarFiltersText: String = "",
     override val error: Exception? = null

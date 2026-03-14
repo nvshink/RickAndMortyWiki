@@ -46,9 +46,7 @@ class CharacterSmallListViewModel @Inject constructor(
 
     val uiState = _characters.map { characters ->
         characters.fold(
-            onLoading = { _ ->
-                LoadingState
-            },
+            onLoading = { LoadingState },
             onSuccess = { characterList ->
                 SuccessState(
                     characterList = characterList

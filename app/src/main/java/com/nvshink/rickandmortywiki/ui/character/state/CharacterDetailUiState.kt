@@ -1,11 +1,6 @@
 package com.nvshink.rickandmortywiki.ui.character.state
 
-import com.nvshink.domain.character.model.CharacterGender
-import com.nvshink.domain.character.model.CharacterLocationModel
 import com.nvshink.domain.character.model.CharacterModel
-import com.nvshink.domain.character.model.CharacterStatus
-import com.nvshink.rickandmortywiki.ui.utils.ContentType
-import java.time.ZonedDateTime
 
 interface CharacterDetailUiState {
 

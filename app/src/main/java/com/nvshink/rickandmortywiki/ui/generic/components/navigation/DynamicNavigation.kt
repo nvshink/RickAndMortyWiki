@@ -1,6 +1,5 @@
 package com.nvshink.rickandmortywiki.ui.generic.components.navigation
 
-import android.util.Log
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.runtime.Composable

@@ -1,12 +1,9 @@
 package com.nvshink.domain.location.repository
 
 import androidx.paging.PagingData
-import com.nvshink.domain.character.model.CharacterModel
 import com.nvshink.domain.location.model.LocationFilterModel
 import com.nvshink.domain.location.model.LocationModel
-import com.nvshink.domain.resource.PageInfoModel
 import com.nvshink.domain.resource.Resource
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 
 interface LocationRepository {

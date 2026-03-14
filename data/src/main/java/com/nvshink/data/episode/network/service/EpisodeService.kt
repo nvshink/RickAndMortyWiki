@@ -23,9 +23,7 @@ class EpisodeService @Inject constructor(
             parameter("episode", episode)
         }.body<PageResponse<EpisodeResponse>>()
     }
-    suspend fun getGetListOfEpisodesByUrl(url: String): PageResponse<EpisodeResponse> {
-        return client.get(urlString = url).body<PageResponse<EpisodeResponse>>()
-    }
+
     suspend fun getGetListOfEpisodesByPath(path: String): List<EpisodeResponse> {
         return client.get(urlString = "$basePath$path").body<List<EpisodeResponse>>()
     }

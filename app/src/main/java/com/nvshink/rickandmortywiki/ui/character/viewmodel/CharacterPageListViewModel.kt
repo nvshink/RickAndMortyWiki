@@ -10,7 +10,6 @@ import com.nvshink.domain.character.model.CharacterModel
 import com.nvshink.domain.character.repository.CharacterRepository
 import com.nvshink.rickandmortywiki.ui.character.event.CharacterPageListEvent
 import com.nvshink.rickandmortywiki.ui.character.state.CharacterPageListUiState
-import com.nvshink.rickandmortywiki.ui.utils.ContentType
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
@@ -28,8 +27,7 @@ import javax.inject.Inject
 @OptIn(ExperimentalCoroutinesApi::class, FlowPreview::class)
 @HiltViewModel
 open class CharacterPageListViewModel @Inject constructor(
-    private val repository: CharacterRepository,
-    private val dataSourceManager: DataSourceManager
+    private val repository: CharacterRepository
 ) : ViewModel() {
     private val _filter = MutableStateFlow(
         CharacterFilterModel(
@@ -42,17 +40,17 @@ open class CharacterPageListViewModel @Inject constructor(
     )
     private val _searchQuery = MutableStateFlow("")
     private val filter = combine(_filter, _searchQuery.debounce(1000L)) { filter, searchQuery ->
-        filter.copy(name = searchQuery.ifBlank { null })
+        filter.copy(
+            name = searchQuery.ifBlank { null },
+            status = filter.status,
+            species = filter.species,
+            type = filter.type,
+            gender = filter.gender
+        )
     }.stateIn(
         viewModelScope,
         SharingStarted.WhileSubscribed(),
-        CharacterFilterModel(
-            name = null,
-            status = null,
-            species = null,
-            type = null,
-            gender = null
-        )
+        CharacterFilterModel()
     )
 
     private val _characters = filter.flatMapLatest { filter ->
@@ -124,8 +122,6 @@ open class CharacterPageListViewModel @Inject constructor(
                     }
                     _searchQuery.update { event.text }
                 }
-
-                is CharacterPageListEvent.SetIsLocal -> dataSourceManager.setLocal(event.isLocal)
 
                 is CharacterPageListEvent.RetryPageLoad -> event.characters.retry()
             }

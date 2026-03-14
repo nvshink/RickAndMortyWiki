@@ -25,9 +25,7 @@ class LocationService @Inject constructor(
             parameter("dimension", dimension)
         }.body<PageResponse<LocationResponse>>()
     }
-    suspend fun getGetListOfLocationsByUrl(url: String): PageResponse<LocationResponse> {
-        return client.get(urlString = url).body<PageResponse<LocationResponse>>()
-    }
+
     suspend fun getGetListOfLocationsByPath(path: String): List<LocationResponse> {
         return client.get(urlString = "$basePath$path").body<List<LocationResponse>>()
     }

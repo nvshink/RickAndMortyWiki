@@ -5,25 +5,20 @@ import androidx.paging.ExperimentalPagingApi
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
-import androidx.paging.cachedIn
 import androidx.paging.map
-import androidx.room.RoomRawQuery
-import com.nvshink.data.character.local.dao.CharacterDao
-import com.nvshink.data.character.network.response.CharacterResponse
 import com.nvshink.data.character.network.service.CharacterService
 import com.nvshink.data.character.paging.CharacterRemoteMediator
 import com.nvshink.data.character.utils.toEntity
 import com.nvshink.data.character.utils.toModel
 import com.nvshink.data.generic.local.room.RickAndMortyWikiDB
 import com.nvshink.data.generic.network.exception.ResourceNotFoundException
-import com.nvshink.data.generic.network.response.PageResponse
 import com.nvshink.domain.character.model.CharacterFilterModel
+import com.nvshink.domain.character.model.CharacterGender
 import com.nvshink.domain.character.model.CharacterModel
-import com.nvshink.domain.resource.PageInfoModel
+import com.nvshink.domain.character.model.CharacterStatus
 import com.nvshink.domain.character.repository.CharacterRepository
 import com.nvshink.domain.resource.Resource
 import jakarta.inject.Inject
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
@@ -34,6 +29,7 @@ class CharacterRepositoryImpl @Inject constructor(
     private val database: RickAndMortyWikiDB
 ) : CharacterRepository {
     private val dao = database.characterDao
+
 
     @OptIn(ExperimentalPagingApi::class)
     override fun getCharactersStream(
@@ -53,7 +49,26 @@ class CharacterRepositoryImpl @Inject constructor(
                 filterModel = filterModel
             ),
             pagingSourceFactory = {
-                dao.getPagingSource()
+                dao.getPagingSource(
+                    name = filterModel.name,
+                    status = filterModel.status?.let {
+                        when (it) {
+                            CharacterStatus.ALIVE -> "Alive"
+                            CharacterStatus.DEAD -> "Dead"
+                            CharacterStatus.UNKNOWN -> "unknown"
+                        }
+                    },
+                    species = filterModel.species,
+                    type = filterModel.type,
+                    gender = filterModel.gender?.let {
+                        when (it) {
+                            CharacterGender.MALE -> "Male"
+                            CharacterGender.FEMALE -> "Female"
+                            CharacterGender.GENDERLESS -> "Genderless"
+                            CharacterGender.UNKNOWN -> "unknown"
+                        }
+                    }
+                )
             }
         ).flow.map { pagingData -> pagingData.map { entity -> entity.toModel() } }
     }
@@ -160,43 +175,4 @@ class CharacterRepositoryImpl @Inject constructor(
             emit(Resource.Error(exception = dbException))
         }
     }
-
-    private fun sqlCharacterQueryBuilder(
-        name: String?,
-        status: String?,
-        species: String?,
-        type: String?,
-        gender: String?
-    ): RoomRawQuery {
-        val selectionArgs = mutableListOf<String>()
-
-        if (name != null) {
-            selectionArgs.add("name LIKE '%$name%'")
-        }
-
-        if (status != null) {
-            selectionArgs.add("status LIKE '$status'")
-        }
-
-        if (species != null) {
-            selectionArgs.add("species LIKE '%$species%'")
-        }
-
-        if (type != null) {
-            selectionArgs.add("type LIKE '%$type%'")
-        }
-
-        if (gender != null) {
-            selectionArgs.add("gender LIKE '$gender'")
-        }
-
-        val query =
-            "SELECT * FROM characters ${if (selectionArgs.isNotEmpty()) "WHERE" else ""} ${
-                selectionArgs.joinToString(
-                    " AND "
-                )
-            }"
-        return RoomRawQuery(query)
-    }
-
 }

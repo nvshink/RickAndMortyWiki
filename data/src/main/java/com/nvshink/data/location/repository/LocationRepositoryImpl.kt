@@ -5,14 +5,11 @@ import androidx.paging.ExperimentalPagingApi
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
-import androidx.paging.cachedIn
 import androidx.paging.map
 import androidx.room.RoomRawQuery
 import com.nvshink.data.generic.local.room.RickAndMortyWikiDB
 import com.nvshink.data.generic.network.exception.ResourceNotFoundException
-import com.nvshink.data.generic.network.response.PageResponse
 import com.nvshink.data.location.local.dao.LocationDao
-import com.nvshink.data.location.network.response.LocationResponse
 import com.nvshink.data.location.network.service.LocationService
 import com.nvshink.data.location.paging.LocationRemoteMediator
 import com.nvshink.data.location.utils.toEntity
@@ -20,7 +17,6 @@ import com.nvshink.data.location.utils.toModel
 import com.nvshink.domain.location.model.LocationFilterModel
 import com.nvshink.domain.location.model.LocationModel
 import com.nvshink.domain.location.repository.LocationRepository
-import com.nvshink.domain.resource.PageInfoModel
 import com.nvshink.domain.resource.Resource
 import jakarta.inject.Inject
 import kotlinx.coroutines.flow.Flow
@@ -53,7 +49,11 @@ class LocationRepositoryImpl @Inject constructor(
                 filterModel = filterModel
             ),
             pagingSourceFactory = {
-                dao.getPagingSource()
+                dao.getPagingSource(
+                    name = filterModel.name,
+                    type = filterModel.type,
+                    dimension = filterModel.dimension
+                )
             }
         ).flow.map { pagingData -> pagingData.map { entity -> entity.toModel() } }
     }
@@ -198,7 +198,7 @@ class LocationRepositoryImpl @Inject constructor(
         }
 
         if (type != null) {
-            selectionArgs.add("status LIKE '$type'")
+            selectionArgs.add("type LIKE '$type'")
         }
 
         if (dimension != null) {

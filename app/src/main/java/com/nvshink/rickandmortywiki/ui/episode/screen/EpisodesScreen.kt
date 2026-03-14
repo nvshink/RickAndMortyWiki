@@ -1,14 +1,9 @@
 package com.nvshink.rickandmortywiki.ui.episode.screen
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.SearchOff
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -58,7 +53,6 @@ fun EpisodesScreen(
         emptyDetailIcon = Icons.Filled.Person,
         emptyDetailIconDescription = stringResource(R.string.empty_screen_icon_description_episode),
         listArrangement = 10.dp,
-        fab = null,
         listItem = { uiModel ->
             when (uiModel) {
                 is EpisodeUiModel.Episode -> {

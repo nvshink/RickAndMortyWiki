@@ -1,6 +1,5 @@
 package com.nvshink.data.character.utils
 
-import android.util.Log
 import com.nvshink.data.character.local.entity.CharacterEntity
 import com.nvshink.data.character.local.entity.CharacterLocationEntity
 import com.nvshink.data.character.network.response.CharacterLocationResponse

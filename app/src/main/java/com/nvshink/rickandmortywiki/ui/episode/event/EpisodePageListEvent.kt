@@ -12,7 +12,5 @@ sealed interface EpisodePageListEvent {
     data class SetFilter(val filter: EpisodeFilterModel) : EpisodePageListEvent
     data class SetUiStateFilter(val filter: EpisodeFilterModel) : EpisodePageListEvent
     data object ClearFilterUi : EpisodePageListEvent
-    data object LoadMore : EpisodePageListEvent
     data class SetSearchBarText(val text: String) : EpisodePageListEvent
-    data class SetIsLocal(val isLocal: Boolean) : EpisodePageListEvent
 }

@@ -3,9 +3,7 @@ package com.nvshink.domain.character.repository
 import androidx.paging.PagingData
 import com.nvshink.domain.character.model.CharacterFilterModel
 import com.nvshink.domain.character.model.CharacterModel
-import com.nvshink.domain.resource.PageInfoModel
 import com.nvshink.domain.resource.Resource
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 
 interface CharacterRepository {

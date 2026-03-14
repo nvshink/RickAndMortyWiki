@@ -1,7 +1,6 @@
 package com.nvshink.data.location.network.response
 
 import kotlinx.serialization.Serializable
-import java.time.ZonedDateTime
 
 @Serializable
 data class LocationResponse(

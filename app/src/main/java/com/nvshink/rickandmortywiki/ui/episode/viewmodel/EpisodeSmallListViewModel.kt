@@ -2,7 +2,6 @@ package com.nvshink.rickandmortywiki.ui.episode.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.nvshink.data.generic.local.datasource.DataSourceManager
 import com.nvshink.domain.episode.repository.EpisodeRepository
 import com.nvshink.domain.resource.Resource
 import com.nvshink.rickandmortywiki.ui.episode.event.EpisodeSmallListEvent
@@ -23,10 +22,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class EpisodeSmallListViewModel @Inject constructor(
-    private val repository: EpisodeRepository,
-    private val dataSourceManager: DataSourceManager
+    private val repository: EpisodeRepository
 ) : ViewModel() {
-    private val _isLocal = dataSourceManager.isLocal
     private val _reloadCounts = MutableStateFlow(0)
     private val _urls = MutableStateFlow<List<String>>(emptyList())
 
@@ -47,28 +44,24 @@ class EpisodeSmallListViewModel @Inject constructor(
         Resource.Loading()
     )
 
-    val uiState = combine(_episodes, _isLocal) { episodes, isLocal ->
+    val uiState = _episodes.map { episodes ->
         episodes.fold(
-            onLoading = { _ ->
-                LoadingState(isLocal = isLocal)
-            },
+            onLoading = { LoadingState },
             onSuccess = { episodeList ->
                 SuccessState(
-                    episodeList = episodeList,
-                    isLocal = isLocal
+                    episodeList = episodeList
                 )
             },
             onError = { _, exception ->
                 ErrorState(
                     error = exception,
-                    isLocal = isLocal
                 )
             }
         )
     }.stateIn(
         viewModelScope,
         SharingStarted.WhileSubscribed(5000),
-        LoadingState()
+        LoadingState
     )
 
     fun onEvent(event: EpisodeSmallListEvent) {

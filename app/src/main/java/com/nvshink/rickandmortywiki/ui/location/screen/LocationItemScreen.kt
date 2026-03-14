@@ -1,22 +1,16 @@
 package com.nvshink.rickandmortywiki.ui.location.screen
 
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import com.nvshink.rickandmortywiki.ui.character.event.CharacterSmallListEvent
-import com.nvshink.rickandmortywiki.ui.character.screen.CharacterItemViewScreen
-import com.nvshink.rickandmortywiki.ui.character.state.CharacterSmallListUiState
-import com.nvshink.rickandmortywiki.ui.character.viewmodel.CharacterDetailViewModel
 import com.nvshink.rickandmortywiki.ui.character.viewmodel.CharacterSmallListViewModel
 import com.nvshink.rickandmortywiki.ui.generic.components.topbar.ItemScreenTopBar
 import com.nvshink.rickandmortywiki.ui.generic.screens.ItemErrorScreen

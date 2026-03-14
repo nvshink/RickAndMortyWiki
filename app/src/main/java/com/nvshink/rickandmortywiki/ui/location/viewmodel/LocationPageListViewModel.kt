@@ -28,8 +28,7 @@ import javax.inject.Inject
 @OptIn(ExperimentalCoroutinesApi::class, FlowPreview::class)
 @HiltViewModel
 open class LocationPageListViewModel @Inject constructor(
-    private val repository: LocationRepository,
-    private val dataSourceManager: DataSourceManager
+    private val repository: LocationRepository
 ) : ViewModel() {
     private val _contentType = MutableStateFlow(ContentType.LIST_ONLY)
     private val _filter = MutableStateFlow(
@@ -121,8 +120,6 @@ open class LocationPageListViewModel @Inject constructor(
                     }
                     _searchQuery.update { event.text }
                 }
-
-                is LocationPageListEvent.SetIsLocal -> dataSourceManager.setLocal(event.isLocal)
 
                 is LocationPageListEvent.RetryPageLoad -> event.locations.retry()
 

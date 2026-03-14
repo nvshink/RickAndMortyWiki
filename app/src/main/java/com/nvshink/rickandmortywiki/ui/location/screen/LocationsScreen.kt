@@ -52,7 +52,6 @@ fun LocationsScreen(
         emptyDetailIcon = Icons.Filled.Person,
         emptyDetailIconDescription = stringResource(R.string.empty_screen_icon_description_location),
         listArrangement = 10.dp,
-        fab = null,
         listItem = {location ->
             LocationPageListCardContent(location = location)
         },

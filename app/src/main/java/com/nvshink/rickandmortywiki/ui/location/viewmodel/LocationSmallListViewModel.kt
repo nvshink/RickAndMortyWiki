@@ -2,7 +2,6 @@ package com.nvshink.rickandmortywiki.ui.location.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.nvshink.data.generic.local.datasource.DataSourceManager
 import com.nvshink.domain.location.repository.LocationRepository
 import com.nvshink.domain.resource.Resource
 import com.nvshink.rickandmortywiki.ui.location.event.LocationSmallListEvent
@@ -23,10 +22,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class LocationSmallListViewModel @Inject constructor(
-    private val repository: LocationRepository,
-    private val dataSourceManager: DataSourceManager
+    private val repository: LocationRepository
 ) : ViewModel() {
-    private val _isLocal = dataSourceManager.isLocal
     private val _reloadCounts = MutableStateFlow(0)
     private val _urls = MutableStateFlow<List<String>>(emptyList())
 
@@ -47,28 +44,24 @@ class LocationSmallListViewModel @Inject constructor(
         Resource.Loading()
     )
 
-    val uiState = combine(_locations, _isLocal) { locations, isLocal ->
+    val uiState = _locations.map { locations ->
         locations.fold(
-            onLoading = { _ ->
-                LoadingState(isLocal = isLocal)
-            },
+            onLoading = { LoadingState },
             onSuccess = { locationList ->
                 SuccessState(
-                    locationList = locationList,
-                    isLocal = isLocal
+                    locationList = locationList
                 )
             },
             onError = { _, exception ->
                 ErrorState(
-                    error = exception,
-                    isLocal = isLocal
+                    error = exception
                 )
             }
         )
     }.stateIn(
         viewModelScope,
         SharingStarted.WhileSubscribed(5000),
-        LoadingState()
+        LoadingState
     )
 
     fun onEvent(event: LocationSmallListEvent) {

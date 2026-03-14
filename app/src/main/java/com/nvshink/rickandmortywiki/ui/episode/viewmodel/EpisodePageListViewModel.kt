@@ -31,8 +31,7 @@ import javax.inject.Inject
 @OptIn(ExperimentalCoroutinesApi::class, FlowPreview::class)
 @HiltViewModel
 open class EpisodePageListViewModel @Inject constructor(
-    private val repository: EpisodeRepository,
-    private val dataSourceManager: DataSourceManager
+    private val repository: EpisodeRepository
 ) : ViewModel() {
     private val _filter = MutableStateFlow(
         EpisodeFilterModel(
@@ -130,12 +129,7 @@ open class EpisodePageListViewModel @Inject constructor(
                     }
                     _searchQuery.update { event.text }
                 }
-
-                is EpisodePageListEvent.SetIsLocal -> dataSourceManager.setLocal(event.isLocal)
-
                 is EpisodePageListEvent.RetryPageLoad -> event.episodes.retry()
-
-                EpisodePageListEvent.LoadMore -> {}
             }
         }
     }

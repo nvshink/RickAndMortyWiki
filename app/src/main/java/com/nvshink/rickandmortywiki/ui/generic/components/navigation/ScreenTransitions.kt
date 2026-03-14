@@ -12,7 +12,7 @@ import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.ui.unit.IntOffset
 
 object ScreenTransitions {
-    private fun <T> adaptiveSpringSpec(visibilityThreshold: T? = null) = spring<T>(
+    private fun <T> adaptiveSpringSpec(visibilityThreshold: T? = null) = spring(
         dampingRatio = Spring.DampingRatioNoBouncy,
         stiffness = Spring.StiffnessMediumLow,
         visibilityThreshold = visibilityThreshold

@@ -3,14 +3,9 @@ package com.nvshink.data.character.local.dao
 import androidx.paging.PagingSource
 import androidx.room.Dao
 import androidx.room.Query
-import androidx.room.RawQuery
-import androidx.room.RoomRawQuery
 import androidx.room.Upsert
-import androidx.sqlite.db.SupportSQLiteQuery
 import com.nvshink.data.character.local.entity.CharacterEntity
 import com.nvshink.data.character.local.entity.CharacterRemoteKey
-import com.nvshink.domain.character.model.CharacterGender
-import com.nvshink.domain.character.model.CharacterStatus
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -38,8 +33,24 @@ interface CharacterDao {
     @Query("SELECT * FROM characters ORDER BY id ASC LIMIT :limit OFFSET :offset")
     suspend fun getCharactersPagingList(limit: Int, offset: Int): List<CharacterEntity>
 
-    @Query("SELECT * FROM characters ORDER BY id ASC")
-    fun getPagingSource(): PagingSource<Int, CharacterEntity>
+    @Query(
+        """
+        SELECT * FROM characters 
+        WHERE (:name IS NULL OR name LIKE '%' || :name || '%')
+        AND (:status IS NULL OR status = :status)
+        AND (:species IS NULL OR species LIKE '%' || :species || '%')
+        AND (:type IS NULL OR type LIKE '%' || :type || '%')
+        AND (:gender IS NULL OR gender = :gender)
+        ORDER BY id ASC
+    """
+    )
+    fun getPagingSource(
+        name: String? = null,
+        status: String? = null,
+        species: String? = null,
+        type: String? = null,
+        gender: String? = null
+    ): PagingSource<Int, CharacterEntity>
 
     @Query("SELECT * FROM characters ORDER BY id ASC")
     suspend fun getCharacters(): List<CharacterEntity>

@@ -1,6 +1,5 @@
 package com.nvshink.data.generic.network.exception
 
-import com.nvshink.data.R
 import io.ktor.http.HttpStatusCode
 
 abstract class HttpException(

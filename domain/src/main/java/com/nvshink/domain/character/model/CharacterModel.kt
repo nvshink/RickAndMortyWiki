@@ -1,6 +1,5 @@
 package com.nvshink.domain.character.model
 
-import com.nvshink.domain.location.model.LocationModel
 import java.time.ZonedDateTime
 
 /**
