@@ -4,7 +4,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
-import com.nvshink.data.generic.local.datasource.DataSourceManager
 import com.nvshink.domain.character.model.CharacterFilterModel
 import com.nvshink.domain.character.model.CharacterModel
 import com.nvshink.domain.character.repository.CharacterRepository

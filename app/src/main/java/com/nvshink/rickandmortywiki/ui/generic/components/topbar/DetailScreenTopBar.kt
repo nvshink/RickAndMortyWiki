@@ -14,7 +14,7 @@ import androidx.compose.ui.Modifier
 import com.nvshink.rickandmortywiki.ui.utils.ContentType
 
 @Composable
-fun ItemScreenTopBar(
+fun DetailScreenTopBar(
     modifier: Modifier = Modifier,
     contentType: ContentType,
     onBackButtonClicked: (() -> Unit)? = null,

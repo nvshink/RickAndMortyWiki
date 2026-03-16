@@ -91,15 +91,11 @@ fun CharacterPageListCardContent(
                     )
                 }
                 Row(
-                    horizontalArrangement = Arrangement.spacedBy(5.dp),
+                    horizontalArrangement = Arrangement.SpaceAround,
                     modifier = Modifier
                         .padding(vertical = 8.dp, horizontal = 6.dp)
                         .fillMaxWidth()
                 ) {
-                    CardContentTag(
-                        modifier = Modifier.weight(1f, fill = false),
-                        text = character.species
-                    )
                     CardContentTag(
                         modifier = Modifier.weight(1f, fill = false),
                         text = character.gender.getName(context = context),

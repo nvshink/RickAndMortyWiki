@@ -1,14 +1,13 @@
 package com.nvshink.rickandmortywiki.ui.episode.viewmodel
 
+import androidx.lifecycle.SavedStateHandle
 import app.cash.turbine.test
-import com.nvshink.data.generic.local.datasource.DataSourceManager
 import com.nvshink.domain.episode.model.EpisodeModel
 import com.nvshink.domain.episode.repository.EpisodeRepository
 import com.nvshink.domain.resource.Resource
 import com.nvshink.rickandmortywiki.ui.episode.event.EpisodeDetailEvent
 import com.nvshink.rickandmortywiki.ui.episode.state.EpisodeDetailUiState
 import io.mockk.coEvery
-import io.mockk.coVerify
 import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -46,7 +45,7 @@ class EpisodeDetailViewModelTest {
     fun setup() {
         Dispatchers.setMain(testDispatcher)
         repository = mockk()
-        viewModel = EpisodeDetailViewModel(repository)
+        viewModel = EpisodeDetailViewModel(repository, SavedStateHandle())
     }
 
     @After

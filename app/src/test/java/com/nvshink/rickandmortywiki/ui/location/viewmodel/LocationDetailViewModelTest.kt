@@ -1,5 +1,6 @@
 package com.nvshink.rickandmortywiki.ui.location.viewmodel
 
+import androidx.lifecycle.SavedStateHandle
 import app.cash.turbine.test
 import com.nvshink.domain.location.model.LocationModel
 import com.nvshink.domain.location.repository.LocationRepository
@@ -7,7 +8,6 @@ import com.nvshink.domain.resource.Resource
 import com.nvshink.rickandmortywiki.ui.location.event.LocationDetailEvent
 import com.nvshink.rickandmortywiki.ui.location.state.LocationDetailUiState
 import io.mockk.coEvery
-import io.mockk.coVerify
 import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -44,7 +44,7 @@ class LocationDetailViewModelTest {
     fun setup() {
         Dispatchers.setMain(testDispatcher)
         repository = mockk()
-        viewModel = LocationDetailViewModel(repository)
+        viewModel = LocationDetailViewModel(repository, SavedStateHandle())
     }
 
     @After

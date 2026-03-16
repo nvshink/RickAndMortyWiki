@@ -29,13 +29,23 @@ class LocationSmallListViewModel @Inject constructor(
 
     @OptIn(ExperimentalCoroutinesApi::class)
     private val _locations = combine(_urls, _reloadCounts) { urls, _ ->
-        urls.map { it.substringAfterLast('/').toInt() }
+        urls.mapNotNull { url ->
+            try {
+                url.substringAfterLast('/').toIntOrNull()
+            } catch (e: NumberFormatException) {
+                null
+            }
+        }
     }.flatMapLatest { ids ->
-        repository.getLocationsByIdsApi(ids).flatMapLatest { apiResult ->
-            if (apiResult is Resource.Error) {
-                repository.getLocationsByIdsDB(ids)
-            } else {
-                flowOf(apiResult)
+        if (ids.isEmpty()) {
+            flowOf(Resource.Success(emptyList()))
+        } else {
+            repository.getLocationsByIdsApi(ids).flatMapLatest { apiResult ->
+                if (apiResult is Resource.Error) {
+                    repository.getLocationsByIdsDB(ids)
+                } else {
+                    flowOf(apiResult)
+                }
             }
         }
     }.stateIn(

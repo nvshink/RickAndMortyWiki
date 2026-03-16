@@ -51,7 +51,7 @@ fun RickAndMortyWikiApp(
         }
 
         WindowWidthSizeClass.Medium, WindowWidthSizeClass.Expanded -> {
-            contentType = ContentType.LIST_ONLY
+            contentType = ContentType.LIST_AND_DETAIL
             navigationType = NavigationType.NAVIGATION_RAIL
             screensShape = MaterialTheme.shapes.extraLarge.copy(
                 topEnd = CornerSize(

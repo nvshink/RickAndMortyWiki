@@ -1,7 +1,7 @@
 package com.nvshink.rickandmortywiki.ui.character.viewmodel
 
+import androidx.lifecycle.SavedStateHandle
 import app.cash.turbine.test
-import com.nvshink.data.generic.local.datasource.DataSourceManager
 import com.nvshink.domain.character.model.CharacterGender
 import com.nvshink.domain.character.model.CharacterModel
 import com.nvshink.domain.character.model.CharacterStatus
@@ -10,12 +10,9 @@ import com.nvshink.domain.resource.Resource
 import com.nvshink.rickandmortywiki.ui.character.event.CharacterDetailEvent
 import com.nvshink.rickandmortywiki.ui.character.state.CharacterDetailUiState
 import io.mockk.coEvery
-import io.mockk.coVerify
 import io.mockk.mockk
-import io.mockk.verify
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.resetMain
@@ -33,7 +30,6 @@ class CharacterDetailViewModelTest {
 
     private val testDispatcher = StandardTestDispatcher()
     private lateinit var repository: CharacterRepository
-    private lateinit var dataSourceManager: DataSourceManager
     private lateinit var viewModel: CharacterDetailViewModel
 
     private val mockCharacter = CharacterModel(
@@ -55,11 +51,10 @@ class CharacterDetailViewModelTest {
     fun setup() {
         Dispatchers.setMain(testDispatcher)
         repository = mockk()
-        dataSourceManager = mockk(relaxed = true)
-        
+
         coEvery { repository.getCharacterByIdApi(any()) } returns flowOf(Resource.Loading())
         
-        viewModel = CharacterDetailViewModel(repository, dataSourceManager)
+        viewModel = CharacterDetailViewModel(repository, SavedStateHandle())
     }
 
     @After

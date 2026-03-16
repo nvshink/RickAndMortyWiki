@@ -1,5 +1,6 @@
 package com.nvshink.rickandmortywiki.ui.location.viewmodel
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nvshink.domain.location.repository.LocationRepository
@@ -21,10 +22,12 @@ import javax.inject.Inject
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 open class LocationDetailViewModel @Inject constructor(
-    private val repository: LocationRepository
+    private val repository: LocationRepository,
+    savedStateHandle: SavedStateHandle
 ) : ViewModel() {
+    private val _savedStateHandle = savedStateHandle
     private val _reloadCounts = MutableStateFlow(0)
-    private val _locationId = MutableStateFlow(0)
+    private val _locationId = MutableStateFlow(_savedStateHandle.get<Int>("locationId") ?: 0)
 
     private val _location =
         combine(
@@ -77,8 +80,10 @@ open class LocationDetailViewModel @Inject constructor(
 
     fun onEvent(event: LocationDetailEvent) {
         when (event) {
-            is LocationDetailEvent.SetLocation ->
+            is LocationDetailEvent.SetLocation -> {
                 _locationId.update { event.id }
+                _savedStateHandle["locationId"] = event.id
+            }
 
             LocationDetailEvent.Refresh -> {
                 reloadLocation()

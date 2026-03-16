@@ -1,6 +1,5 @@
 package com.nvshink.data.location.paging
 
-import android.util.Log
 import androidx.paging.ExperimentalPagingApi
 import androidx.paging.LoadType
 import androidx.paging.PagingState
@@ -33,7 +32,6 @@ class LocationRemoteMediator(
         val page = when (loadType) {
             LoadType.REFRESH -> {
                 val remoteKeys = getRemoteKeyClosestToCurrentPosition(state)
-                Log.d("REMOTE_MEDIATOR", "Refresh remoteKeys:$remoteKeys")
                 remoteKeys?.nextKey?.minus(1) ?: 1
             }
             LoadType.PREPEND -> {
@@ -44,7 +42,6 @@ class LocationRemoteMediator(
             }
             LoadType.APPEND -> {
                 val remoteKeys = getRemoteKeyForLastItem(state)
-                Log.d("REMOTE_MEDIATOR", "Append remoteKeys:$remoteKeys")
                 val nextKey = remoteKeys?.nextKey
                     ?: return MediatorResult.Success(endOfPaginationReached = true)
                 nextKey
@@ -72,11 +69,9 @@ class LocationRemoteMediator(
             }
             database.withTransaction {
                 if (loadType == LoadType.REFRESH) {
-                    Log.d("REMOTE_MEDIATOR", "REFRESH triggered! Clearing database!")
                     dao.clearRemoteKeys()
                     dao.clearLocations()
                 }
-                Log.d("REMOTE_MEDIATOR", "Upsert to DB!")
                 dao.upsertRemoteKeys(keys)
                 dao.upsertLocations(locations)
             }

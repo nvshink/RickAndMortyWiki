@@ -64,7 +64,7 @@ import java.time.ZonedDateTime
             url = origin.url
         ),
         location = CharacterLocationEntity(
-            locationId = origin.id,
+            locationId = location.id,
             name = location.name,
             url = location.url
         ),
@@ -164,7 +164,7 @@ import java.time.ZonedDateTime
             url = origin.url
         ),
         location = CharacterLocationEntity(
-            locationId = urlToId(origin.url),
+            locationId = urlToId(location.url),
             name = location.name,
             url = location.url
         ),

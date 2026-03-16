@@ -1,8 +1,8 @@
 package com.nvshink.rickandmortywiki.ui.character.viewmodel
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.nvshink.data.generic.local.datasource.DataSourceManager
 import com.nvshink.domain.character.repository.CharacterRepository
 import com.nvshink.domain.resource.Resource
 import com.nvshink.rickandmortywiki.ui.character.event.CharacterDetailEvent
@@ -23,10 +23,11 @@ import javax.inject.Inject
 @HiltViewModel
 open class CharacterDetailViewModel @Inject constructor(
     private val repository: CharacterRepository,
-    private val dataSourceManager: DataSourceManager
+    savedStateHandle: SavedStateHandle
 ) : ViewModel() {
+    private val _savedStateHandle = savedStateHandle
     private val _reloadCounts = MutableStateFlow(0)
-    private val _characterId = MutableStateFlow(0)
+    private val _characterId = MutableStateFlow(_savedStateHandle.get<Int>("characterId") ?: 0)
     private val _character = combine(
         _characterId,
         _reloadCounts
@@ -74,13 +75,12 @@ open class CharacterDetailViewModel @Inject constructor(
         SharingStarted.WhileSubscribed(5000),
         CharacterDetailUiState.LoadingState()
     )
-
     fun onEvent(event: CharacterDetailEvent) {
         when (event) {
-            is CharacterDetailEvent.SetCharacter ->
+            is CharacterDetailEvent.SetCharacter -> {
                 _characterId.update { event.id }
-
-            is CharacterDetailEvent.SetIsLocal -> dataSourceManager.setLocal(event.isLocal)
+                _savedStateHandle["characterId"] = event.id
+            }
 
             CharacterDetailEvent.Refresh -> {
                 reloadCharacter()

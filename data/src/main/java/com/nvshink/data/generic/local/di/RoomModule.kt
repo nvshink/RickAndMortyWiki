@@ -30,15 +30,15 @@ object RoomModule {
     }
     @Provides
     @Singleton
-    fun provideExerciseDao(db: RickAndMortyWikiDB): CharacterDao = db.characterDao
+    fun provideCharacterDao(db: RickAndMortyWikiDB): CharacterDao = db.characterDao
 
     @Provides
     @Singleton
-    fun provideTrainingPlanDao(db: RickAndMortyWikiDB): LocationDao = db.locationDao
+    fun provideLocationDao(db: RickAndMortyWikiDB): LocationDao = db.locationDao
 
     @Provides
     @Singleton
-    fun provideTrainingPlanExerciseDao(db: RickAndMortyWikiDB): EpisodeDao = db.episodeDao
+    fun provideEpisodeDao(db: RickAndMortyWikiDB): EpisodeDao = db.episodeDao
 
 
 }

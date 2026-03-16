@@ -1,8 +1,8 @@
 package com.nvshink.rickandmortywiki.ui.episode.viewmodel
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.nvshink.data.generic.local.datasource.DataSourceManager
 import com.nvshink.domain.episode.repository.EpisodeRepository
 import com.nvshink.domain.resource.Resource
 import com.nvshink.rickandmortywiki.ui.episode.event.EpisodeDetailEvent
@@ -22,10 +22,12 @@ import javax.inject.Inject
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 open class EpisodeDetailViewModel @Inject constructor(
-    private val repository: EpisodeRepository
+    private val repository: EpisodeRepository,
+    savedStateHandle: SavedStateHandle
 ) : ViewModel() {
+    private val _savedStateHandle = savedStateHandle
     private val _reloadCounts = MutableStateFlow(0)
-    private val _episodeId = MutableStateFlow(0)
+    private val _episodeId = MutableStateFlow(_savedStateHandle.get<Int>("episodeId") ?: 0)
 
     private val _episode =
         combine(
@@ -77,8 +79,10 @@ open class EpisodeDetailViewModel @Inject constructor(
 
     fun onEvent(event: EpisodeDetailEvent) {
         when (event) {
-            is EpisodeDetailEvent.SetEpisode ->
+            is EpisodeDetailEvent.SetEpisode -> {
                 _episodeId.update { event.id }
+                _savedStateHandle["episodeId"] = event.id
+            }
 
             EpisodeDetailEvent.Refresh -> {
                 reloadEpisode()

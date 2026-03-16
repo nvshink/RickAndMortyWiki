@@ -6,13 +6,11 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import com.nvshink.rickandmortywiki.ui.character.event.CharacterSmallListEvent
-import com.nvshink.rickandmortywiki.ui.character.viewmodel.CharacterSmallListViewModel
-import com.nvshink.rickandmortywiki.ui.generic.components.topbar.ItemScreenTopBar
+import com.nvshink.rickandmortywiki.ui.character.state.CharacterSmallListUiState
+import com.nvshink.rickandmortywiki.ui.generic.components.topbar.DetailScreenTopBar
 import com.nvshink.rickandmortywiki.ui.generic.screens.ItemErrorScreen
 import com.nvshink.rickandmortywiki.ui.generic.screens.ItemLoadingScreen
 import com.nvshink.rickandmortywiki.ui.location.state.LocationDetailUiState
@@ -24,12 +22,14 @@ fun LocationItemScreen(
     modifier: Modifier = Modifier,
     contentType: ContentType,
     detailUiState: LocationDetailUiState,
+    characterSmallListUiState: CharacterSmallListUiState,
+    onSmallListEvent: (CharacterSmallListEvent) -> Unit,
     navController: NavHostController,
     onRefreshClick: () -> Unit,
     onBackClick: () -> Unit
 ) {
     Column(modifier = modifier.verticalScroll(rememberScrollState())) {
-        ItemScreenTopBar(
+        DetailScreenTopBar(
             contentType = contentType,
             onBackButtonClicked = onBackClick
         )
@@ -43,15 +43,11 @@ fun LocationItemScreen(
             }
 
             is LocationDetailUiState.ViewState -> {
-                val characterSmallListViewModel: CharacterSmallListViewModel = hiltViewModel()
-                val characterSmallListUiState =
-                    characterSmallListViewModel.uiState.collectAsState().value
-                val onCharacterSmallListEvent = characterSmallListViewModel::onEvent
-                onCharacterSmallListEvent(CharacterSmallListEvent.SetUrls(detailUiState.location.residents))
+                onSmallListEvent(CharacterSmallListEvent.SetUrls(detailUiState.location.residents))
                 LocationItemViewScreen(
                     location = detailUiState.location,
                     residentsUiState = characterSmallListUiState,
-                    onSmallListRefresh = {onCharacterSmallListEvent(CharacterSmallListEvent.Refresh)},
+                    onSmallListRefresh = { onSmallListEvent(CharacterSmallListEvent.Refresh) },
                     onNavigation = { destination: Any ->
                         navController.navigate(destination)
                     }

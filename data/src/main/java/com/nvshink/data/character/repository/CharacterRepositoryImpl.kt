@@ -81,8 +81,12 @@ class CharacterRepositoryImpl @Inject constructor(
         flow {
             emit(Resource.Loading())
             try {
+                if (ids.isEmpty()) {
+                    emit(Resource.Success(emptyList()))
+                    return@flow
+                }
                 var path = ""
-                ids.forEach { id -> path += "$id," }
+                ids.filterNotNull().forEach { id -> path += "$id," }
                 val response = service.getGetListOfCharactersByPath(path)
                 response.forEach {
                     dao.upsertCharacter(it.toEntity())
@@ -93,14 +97,14 @@ class CharacterRepositoryImpl @Inject constructor(
             } catch (ce: CancellationException) {
                 throw ce
             } catch (resourceNotFound: ResourceNotFoundException) {
-                Log.d("DATA_LOAD", "Characters by ids error: ${resourceNotFound.message}")
+                Log.e("DATA_LOAD", "Characters by ids error: ${resourceNotFound.message}")
                 emit(
                     Resource.Success(
                         emptyList()
                     )
                 )
             } catch (e: Exception) {
-                Log.d("DATA_LOAD", "Character by ids error: ${e.message}")
+                Log.e("DATA_LOAD", "Character by ids error: ${e.message}")
                 emit(Resource.Error(exception = e))
             }
         }
@@ -110,9 +114,7 @@ class CharacterRepositoryImpl @Inject constructor(
      * @param id Character id number.
      */
     override suspend fun getCharacterByIdApi(id: Int): Flow<Resource<CharacterModel>> = flow {
-        Log.d("DATA_LOAD", "Loading 1")
         emit(Resource.Loading())
-        Log.d("DATA_LOAD", "Loading 2")
         try {
 
             val response = service.getGetCharacterById(id)
@@ -125,14 +127,14 @@ class CharacterRepositoryImpl @Inject constructor(
         } catch (ce: CancellationException) {
             throw ce
         } catch (resourceNotFound: ResourceNotFoundException) {
-            Log.d("DATA_LOAD", "Character by id error: ${resourceNotFound.message}")
+            Log.e("DATA_LOAD", "Character by id error: ${resourceNotFound.message}")
             emit(
                 Resource.Error(
                     exception = resourceNotFound
                 )
             )
         } catch (e: Exception) {
-            Log.d("DATA_LOAD", "Character by id error: ${e.message}")
+            Log.e("DATA_LOAD", "Character by id error: ${e.message}")
             emit(Resource.Error(exception = e))
         }
     }
@@ -153,7 +155,7 @@ class CharacterRepositoryImpl @Inject constructor(
             } catch (ce: CancellationException) {
                 throw ce
             } catch (dbException: Exception) {
-                Log.d("DATA_LOAD", "Characters by ids db error: ${dbException.message}")
+                Log.e("DATA_LOAD", "Characters by ids db error: ${dbException.message}")
                 emit(Resource.Error(exception = dbException))
             }
         }
@@ -171,7 +173,7 @@ class CharacterRepositoryImpl @Inject constructor(
         } catch (ce: CancellationException) {
             throw ce
         } catch (dbException: Exception) {
-            Log.d("DATA_LOAD", "Characters by id db error: ${dbException.message}")
+            Log.e("DATA_LOAD", "Characters by id db error: ${dbException.message}")
             emit(Resource.Error(exception = dbException))
         }
     }

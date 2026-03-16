@@ -37,7 +37,7 @@ import com.nvshink.rickandmortywiki.ui.utils.getIcon
 import com.nvshink.rickandmortywiki.ui.utils.getName
 
 @Composable
-fun CharacterItemViewScreen(
+fun CharacterDetailViewScreen(
     modifier: Modifier = Modifier,
     character: CharacterModel,
     episodesUiState: EpisodeSmallListUiState,

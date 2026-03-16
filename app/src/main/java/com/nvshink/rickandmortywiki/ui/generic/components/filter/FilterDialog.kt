@@ -23,7 +23,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.nvshink.rickandmortywiki.R
-import com.nvshink.rickandmortywiki.ui.generic.components.topbar.ItemScreenTopBar
+import com.nvshink.rickandmortywiki.ui.generic.components.topbar.DetailScreenTopBar
 import com.nvshink.rickandmortywiki.ui.utils.ContentType
 
 @Composable
@@ -63,7 +63,7 @@ fun FilterDialog(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(15.dp)
             ) {
-                ItemScreenTopBar(
+                DetailScreenTopBar(
                     contentType = contentType,
                     onBackButtonClicked = onDismissRequest
                 )

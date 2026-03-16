@@ -13,11 +13,13 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
 import com.nvshink.rickandmortywiki.R
 import com.nvshink.rickandmortywiki.ui.character.event.CharacterDetailEvent
-import com.nvshink.rickandmortywiki.ui.character.screen.CharacterItemScreen
+import com.nvshink.rickandmortywiki.ui.character.screen.CharacterDetailScreen
 import com.nvshink.rickandmortywiki.ui.character.viewmodel.CharacterDetailViewModel
+import com.nvshink.rickandmortywiki.ui.character.viewmodel.CharacterSmallListViewModel
 import com.nvshink.rickandmortywiki.ui.episode.event.EpisodeDetailEvent
 import com.nvshink.rickandmortywiki.ui.episode.screen.EpisodeItemScreen
 import com.nvshink.rickandmortywiki.ui.episode.viewmodel.EpisodeDetailViewModel
+import com.nvshink.rickandmortywiki.ui.episode.viewmodel.EpisodeSmallListViewModel
 import com.nvshink.rickandmortywiki.ui.generic.screens.EmptyItemScreen
 import com.nvshink.rickandmortywiki.ui.location.event.LocationDetailEvent
 import com.nvshink.rickandmortywiki.ui.location.screen.LocationItemScreen
@@ -56,13 +58,18 @@ fun DynamicNavigation(
     ) {
         composable<CharacterItemScreenRoute> { nav ->
             val characterDetailViewModel: CharacterDetailViewModel = hiltViewModel()
+            val episodeSmallListViewModel: EpisodeSmallListViewModel = hiltViewModel()
             val characterDetailUiState = characterDetailViewModel.uiState.collectAsState().value
+            val episodeSmallListUiState = episodeSmallListViewModel.uiState.collectAsState().value
             val onCharacterDetailEvent = characterDetailViewModel::onEvent
+            val onEpisodeSmallListEvent = episodeSmallListViewModel::onEvent
             val args = nav.toRoute<CharacterItemScreenRoute>()
             onCharacterDetailEvent(CharacterDetailEvent.SetCharacter(args.id))
-            CharacterItemScreen(
+            CharacterDetailScreen(
                 modifier = itemModifier,
                 detailUiState = characterDetailUiState,
+                episodeSmallListUiState = episodeSmallListUiState,
+                onSmallListEvent = onEpisodeSmallListEvent,
                 onRefreshClick = {
                     onCharacterDetailEvent(CharacterDetailEvent.Refresh)
                 },
@@ -77,14 +84,19 @@ fun DynamicNavigation(
         }
         composable<LocationItemScreenRoute> { nav ->
             val locationDetailViewModel: LocationDetailViewModel = hiltViewModel()
+            val characterSmallListViewModel: CharacterSmallListViewModel = hiltViewModel()
             val locationDetailUiState =
                 locationDetailViewModel.uiState.collectAsState().value
+            val characterSmallListUiState = characterSmallListViewModel.uiState.collectAsState().value
             val onLocationDetailEvent = locationDetailViewModel::onEvent
+            val onCharacterSmallListEvent = characterSmallListViewModel::onEvent
             val args = nav.toRoute<LocationItemScreenRoute>()
             onLocationDetailEvent(LocationDetailEvent.SetLocation(args.id))
             LocationItemScreen(
                 modifier = itemModifier,
                 detailUiState = locationDetailUiState,
+                characterSmallListUiState = characterSmallListUiState,
+                onSmallListEvent = onCharacterSmallListEvent,
                 onRefreshClick = {
                     onLocationDetailEvent(LocationDetailEvent.Refresh)
                 },
@@ -99,14 +111,19 @@ fun DynamicNavigation(
         }
         composable<EpisodeItemScreenRoute> { nav ->
             val episodeDetailViewModel: EpisodeDetailViewModel = hiltViewModel()
+            val characterSmallListViewModel: CharacterSmallListViewModel = hiltViewModel()
             val episodeDetailUiState =
                 episodeDetailViewModel.uiState.collectAsState().value
+            val characterSmallListUiState = characterSmallListViewModel.uiState.collectAsState().value
             val onEpisodeDetailEvent = episodeDetailViewModel::onEvent
+            val onCharacterSmallListEvent = characterSmallListViewModel::onEvent
             val args = nav.toRoute<EpisodeItemScreenRoute>()
             onEpisodeDetailEvent(EpisodeDetailEvent.SetEpisode(args.id))
             EpisodeItemScreen(
                 modifier = itemModifier,
                 detailUiState = episodeDetailUiState,
+                characterSmallListUiState = characterSmallListUiState,
+                onSmallListEvent = onCharacterSmallListEvent,
                 onRefreshClick = {
                     onEpisodeDetailEvent(EpisodeDetailEvent.Refresh)
                 },

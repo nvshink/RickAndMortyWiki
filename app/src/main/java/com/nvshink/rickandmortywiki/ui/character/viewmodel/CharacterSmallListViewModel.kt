@@ -29,13 +29,23 @@ class CharacterSmallListViewModel @Inject constructor(
 
     @OptIn(ExperimentalCoroutinesApi::class)
     private val _characters = combine(_urls, _reloadCounts) { urls, _ ->
-        urls.map { it.substringAfterLast('/').toInt() }
+        urls.mapNotNull { url ->
+            try {
+                url.substringAfterLast('/').toIntOrNull()
+            } catch (e: NumberFormatException) {
+                null
+            }
+        }
     }.flatMapLatest { ids ->
-        repository.getCharactersByIdsApi(ids).flatMapLatest { apiResult ->
-            if (apiResult is Resource.Error) {
-                repository.getCharactersByIdsDB(ids)
-            } else {
-                flowOf(apiResult)
+        if (ids.isEmpty()) {
+            flowOf(Resource.Success(emptyList()))
+        } else {
+            repository.getCharactersByIdsApi(ids).flatMapLatest { apiResult ->
+                if (apiResult is Resource.Error) {
+                    repository.getCharactersByIdsDB(ids)
+                } else {
+                    flowOf(apiResult)
+                }
             }
         }
     }.stateIn(

@@ -67,8 +67,12 @@ class LocationRepositoryImpl @Inject constructor(
         flow {
             emit(Resource.Loading())
             try {
+                if (ids.isEmpty()) {
+                    emit(Resource.Success(emptyList()))
+                    return@flow
+                }
                 var path = ""
-                ids.forEach { id -> path += "$id," }
+                ids.filterNotNull().forEach { id -> path += "$id," }
                 val response = service.getGetListOfLocationsByPath(path)
                 response.forEach {
                     dao.upsertLocation(it.toEntity())
@@ -79,7 +83,7 @@ class LocationRepositoryImpl @Inject constructor(
             } catch (ce: CancellationException) {
                 throw ce
             } catch (resourceNotFound: ResourceNotFoundException) {
-                Log.d("DATA_LOAD", "Locations error: ${resourceNotFound.message}")
+                Log.e("DATA_LOAD", "Locations error: ${resourceNotFound.message}")
                 emit(
                     Resource.Success(
                         emptyList()
@@ -103,14 +107,14 @@ class LocationRepositoryImpl @Inject constructor(
         } catch (ce: CancellationException) {
             throw ce
         } catch (resourceNotFound: ResourceNotFoundException) {
-            Log.d("DATA_LOAD", "Location by id error: ${resourceNotFound.message}")
+            Log.e("DATA_LOAD", "Location by id error: ${resourceNotFound.message}")
             emit(
                 Resource.Error(
                     exception = resourceNotFound
                 )
             )
         } catch (e: Exception) {
-            Log.d("DATA_LOAD", "Location by id error: ${e.message}")
+            Log.e("DATA_LOAD", "Location by id error: ${e.message}")
             emit(Resource.Error(exception = e))
         }
     }
@@ -142,7 +146,7 @@ class LocationRepositoryImpl @Inject constructor(
         } catch (ce: CancellationException) {
             throw ce
         } catch (dbException: Exception) {
-            Log.d("DATA_LOAD", "Location db error: ${dbException.message}")
+            Log.e("DATA_LOAD", "Location db error: ${dbException.message}")
             emit(Resource.Error(exception = dbException))
         }
     }
@@ -163,7 +167,7 @@ class LocationRepositoryImpl @Inject constructor(
             } catch (ce: CancellationException) {
                 throw ce
             } catch (dbException: Exception) {
-                Log.d("DATA_LOAD", "Location by ids db error: ${dbException.message}")
+                Log.e("DATA_LOAD", "Location by ids db error: ${dbException.message}")
                 emit(Resource.Error(exception = dbException))
             }
         }
@@ -181,7 +185,7 @@ class LocationRepositoryImpl @Inject constructor(
         } catch (ce: CancellationException) {
             throw ce
         } catch (dbException: Exception) {
-            Log.d("DATA_LOAD", "Location by id db error: ${dbException.message}")
+            Log.e("DATA_LOAD", "Location by id db error: ${dbException.message}")
             emit(Resource.Error(exception = dbException))
         }
     }

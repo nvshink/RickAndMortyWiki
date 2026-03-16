@@ -62,8 +62,12 @@ class EpisodeRepositoryImpl @Inject constructor(
         flow {
             emit(Resource.Loading())
             try {
+                if (ids.isEmpty()) {
+                    emit(Resource.Success(emptyList()))
+                    return@flow
+                }
                 var path = ""
-                ids.forEach { id -> path += "$id," }
+                ids.filterNotNull().forEach { id -> path += "$id," }
                 val response = service.getGetListOfEpisodesByPath(path)
                 response.forEach {
                     dao.upsertEpisode(it.toEntity())
@@ -74,14 +78,14 @@ class EpisodeRepositoryImpl @Inject constructor(
             } catch (ce: CancellationException) {
                 throw ce
             } catch (resourceNotFound: ResourceNotFoundException) {
-                Log.d("DATA_LOAD", "Episodes error: ${resourceNotFound.message}")
+                Log.e("DATA_LOAD", "Episodes error: ${resourceNotFound.message}")
                 emit(
                     Resource.Success(
                         emptyList()
                     )
                 )
             } catch (e: Exception) {
-                Log.d("DATA_LOAD", "Episode by ids error: ${e.message}")
+                Log.e("DATA_LOAD", "Episode by ids error: ${e.message}")
                 emit(Resource.Error(exception = e))
             }
         }
@@ -103,14 +107,14 @@ class EpisodeRepositoryImpl @Inject constructor(
         } catch (ce: CancellationException) {
             throw ce
         } catch (resourceNotFound: ResourceNotFoundException) {
-            Log.d("DATA_LOAD", "Episodes error: ${resourceNotFound.message}")
+            Log.e("DATA_LOAD", "Episodes error: ${resourceNotFound.message}")
             emit(
                 Resource.Error(
                     exception = resourceNotFound
                 )
             )
         } catch (e: Exception) {
-            Log.d("DATA_LOAD", "Episode by id error: ${e.message}")
+            Log.e("DATA_LOAD", "Episode by id error: ${e.message}")
             emit(Resource.Error(exception = e))
         }
     }
@@ -140,7 +144,7 @@ class EpisodeRepositoryImpl @Inject constructor(
         } catch (ce: CancellationException) {
             throw ce
         } catch (dbException: Exception) {
-            Log.d("DATA_LOAD", "Episodes db error: ${dbException.message}")
+            Log.e("DATA_LOAD", "Episodes db error: ${dbException.message}")
             emit(Resource.Error(exception = dbException))
         }
     }
@@ -161,7 +165,7 @@ class EpisodeRepositoryImpl @Inject constructor(
             } catch (ce: CancellationException) {
                 throw ce
             } catch (dbException: Exception) {
-                Log.d("DATA_LOAD", "Episodes by ids db error: ${dbException.message}")
+                Log.e("DATA_LOAD", "Episodes by ids db error: ${dbException.message}")
                 emit(Resource.Error(exception = dbException))
             }
         }
@@ -179,7 +183,7 @@ class EpisodeRepositoryImpl @Inject constructor(
         } catch (ce: CancellationException) {
             throw ce
         } catch (dbException: Exception) {
-            Log.d("DATA_LOAD", "Episodes by id db error: ${dbException.message}")
+            Log.e("DATA_LOAD", "Episodes by id db error: ${dbException.message}")
             emit(Resource.Error(exception = dbException))
         }
     }
